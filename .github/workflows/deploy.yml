@@ -22,7 +22,6 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
-        strict_host_key_checking: false # <--- CORREGIDO: Usar strict_host_key_checking
         script: |
           # Navega a la carpeta del proyecto en tu servidor
           cd public_html/public_html/chess_trainer
