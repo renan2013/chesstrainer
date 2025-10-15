@@ -22,6 +22,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
+        host_key_checking: false # <--- NUEVA LÍNEA: Desactiva la verificación de clave de host
         script: |
           # Navega a la carpeta del proyecto en tu servidor
           cd public_html/public_html/chess_trainer
