@@ -18,10 +18,10 @@ jobs:
       # Usa una 'Action' popular de la comunidad para facilitar la conexión SSH
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ 77.37.88.109}}
-        username: ${{ u27451192}}
-        password: ${{ Ajedrez2025! }}
-        port: ${{ 65002 }}
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: ${{ secrets.PORT }}
         script: |
           # Navega a la carpeta del proyecto en tu servidor
           cd public_html/public_html/chess_trainer
