@@ -1,0 +1,31 @@
+# Nombre del Workflow
+name: Deploy to Hostmanía
+
+# Disparador: se ejecuta cada vez que haces 'push' a la rama 'main'
+on:
+  push:
+    branches: [ main ]
+
+# Tareas a ejecutar
+jobs:
+  deploy:
+    # Usa un servidor virtual de Linux para ejecutar los pasos
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Paso de conexión y ejecución de comandos en tu servidor
+    - name: Deploy to Server
+      # Usa una 'Action' popular de la comunidad para facilitar la conexión SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ 77.37.88.109}}
+        username: ${{ u27451192}}
+        password: ${{ Ajedrez2025! }}
+        port: ${{ 65002 }}
+        script: |
+          # Navega a la carpeta del proyecto en tu servidor
+          cd public_html/public_html/chess_trainer
+          # Ejecuta git pull para descargar los últimos cambios
+          git pull
+          # (Opcional) Aquí podrías añadir más comandos, como limpiar la caché
+          echo "Despliegue completado exitosamente!"

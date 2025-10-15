@@ -1,0 +1,15 @@
+# Archivos de configuración local que puedan contener contraseñas
+.env
+
+# Archivos de registro y temporales
+*.log
+*.tmp
+
+# Archivos subidos por los usuarios
+/admin/uploads/
+
+# Dependencias de PHP (manejadas por Composer)
+/vendor/
+
+# Dependencias de JavaScript (manejadas por npm/yarn)
+/node_modules/
