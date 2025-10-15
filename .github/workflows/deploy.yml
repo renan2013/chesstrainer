@@ -22,7 +22,10 @@ jobs:
         username: ${{ secrets.USERNAME }}
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
-        fingerprint: "SHA256:Y97bdSXfe75etey10Upd3TkR5HCAxWB1Jp/JG61zfoI" # <--- NUEVA LÍNEA con el fingerprint SHA256
+        known_hosts: |
+          [77.37.88.109]:65002 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDT29lzcgTJIyfLKiOGJfmVKjwz8z9Zoac6qBRZysbIuuceZYz6ZVchIrpbP4igvdn8pBk10IlB5I3ZpQe7hiH6hzHsYvuOXN/QJ8dXfxVBawq1KMWwvBx7U6cJWy4itqd3DFPy+UXgO2XJXT1P9IQT2sGhYP4jSom4CSvfKVQ17RTQYwvt+9SkSTeZzTNdRo0SXu1GKUZZS69oSXjaAoj+ctT2sOaZUr/0+R1F9rGGJ4XoVi1/gLKFiRXU63Rt3EljHbeTo/ZjmDFFPzTPvYLWT+E8eNIGHS/9TC8X3RT45LT8P0qnbe5854t5fFbTE/xvvdD9EwkKz7NLUS9cyk2MuwOdaQYOG7wVx2XS7lXCXt7F3+4GVNGr/oqkEYUdS4Qg2h7XxE9yceI7/KCzQVfeAXngVzHGxoONQZEJ3HzoaCfQ7eGYxSZJOuvMbWMknhsMjXyk41Dzx47ey9Hwqgy+xHWQHGtszov1OI/IekuMg1rxDaAspT0IxDecVw3+ipc=
+          [77.37.88.109]:65002 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBN0GYrI9id0vqi9Cj1nS28HAWXUMhzEWRYAXoRX0sMkn5GfNtXX+xUM7fUfKW/VIUoON/mfZxoXab4qdi7KNHUg=
+          [77.37.88.109]:65002 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILKWSltaCD6srvQs9x0KK/k506M2fonkPZu1sFttOJOL
         script: |
           # Navega a la carpeta del proyecto en tu servidor
           cd public_html/public_html/chess_trainer
