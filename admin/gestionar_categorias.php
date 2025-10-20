@@ -116,7 +116,7 @@ if ($result && $result->num_rows > 0) {
 
 <div class="admin-container">
     <?php require_once 'includes/sidebar.php'; ?>
-    <main class="main-content">
+    <main class="main-content" style="background-color: #f0f0f0;">
 
         <h1 class="mb-4">Gestionar Categorías</h1>
 
