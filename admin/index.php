@@ -40,7 +40,7 @@ $conn->close();
 
     <main class="main-content">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h1 class="mb-0">Panel de Control</h1>
+            <h1 class="mb-0">Administración</h1>
             <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#top10Modal">
                 <i class="fas fa-chart-bar me-2"></i>Ver Gráfica Top 10
             </button>
