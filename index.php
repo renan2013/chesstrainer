@@ -134,7 +134,7 @@ if ($result_top_users) {
             <p class="text-center text-muted">No hay publicaciones disponibles.</p>
         </div>
     <?php endif; ?>
-    <br/><br/>.....
+    
 </div>
 
 <!-- Ranking Modal -->
