@@ -137,7 +137,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <?php endif; ?>
 
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-md-4">
                     <label for="id_publicacion" class="form-label">Publicación (Define el Modo)</label>
                     <select id="id_publicacion" name="id_publicacion" class="form-select" required>
