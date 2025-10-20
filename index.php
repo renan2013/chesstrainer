@@ -62,6 +62,7 @@ if ($result_top_users) {
 <div class="container">
 
 <div class="row row-cols-1 row-cols-md-4 g-4">
+    <br/>
     <?php if (!empty($publications)): ?>
         <?php foreach ($publications as $pub): ?>
             <div class="col">
