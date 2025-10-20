@@ -1,4 +1,4 @@
-
+    <br/><br/>
     <footer class="footer mt-auto py-3 bg-light">
         <div class="container text-center">
              <img src="https://ajedrezpuriscal.com/chess_trainer/img/logo_ct.svg" width="200px"><br/>
