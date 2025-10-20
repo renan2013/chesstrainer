@@ -118,7 +118,7 @@ if ($result && $result->num_rows > 0) {
     <?php require_once 'includes/sidebar.php'; ?>
     <main class="main-content" style="background-color: #f0f0f0;">
 
-        <h1 class="mb-4">Gestionar Categorías</h1>
+        <h3 class="mb-4">Gestionar Categorías</h3>
 
         <?php if(!empty($mensaje)): ?>
             <div class="alert alert-success" role="alert"><?php echo $mensaje; ?></div>
@@ -128,9 +128,10 @@ if ($result && $result->num_rows > 0) {
             <div class="alert alert-danger" role="alert"><?php echo $error; ?></div>
         <?php endif; ?>
 
-        <h2 class="mb-3">Añadir Nueva Categoría</h2>
+        <h4 class="mb-3">Añadir Nueva Categoría</h4>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
-            <div class="mb-3">
+            <div class="row">
+            <div class="col-md-6">
                 <label for="id_publicacion" class="form-label">Publicación</label>
                 <select name="id_publicacion" id="id_publicacion" class="form-select" required>
                     <option value="">Selecciona una publicación</option>
@@ -139,21 +140,29 @@ if ($result && $result->num_rows > 0) {
                     <?php endforeach; ?>
                 </select>
             </div>
-            <div class="mb-3">
+            <div class="col-md-6">
                 <label for="nombre_categoria" class="form-label">Nombre de la Categoría</label>
                 <input type="text" name="nombre_categoria" id="nombre_categoria" class="form-control" required>
             </div>
-            <div class="mb-3">
+            </div>
+
+
+            <div class="row">
+            <div class="col-md-6">
                 <label for="imagen_categoria" class="form-label">Imagen de la Categoría</label>
                 <input type="file" name="imagen_categoria" id="imagen_categoria" class="form-control" accept="image/*">
             </div>
-            <div class="mb-3">
+            <div class="col-md-6">
                 <label for="estado" class="form-label">Estado</label>
                 <select name="estado" id="estado" class="form-select" required>
                     <option value="0">Inactivo</option>
                     <option value="1">Activo</option>
                 </select>
             </div>
+            </div>
+
+
+
             <div class="d-grid">
                 <button type="submit" name="add_categoria" class="btn btn-primary">Añadir Categoría</button>
             </div>
