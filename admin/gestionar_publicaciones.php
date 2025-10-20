@@ -88,6 +88,7 @@ if ($result && $result->num_rows > 0) {
             </div>
             </div>
             <div class="row">
+                <br/>
             <div class="col-md-6">
                 <label for="tipo" class="form-label">Tipo de Publicación</label>
                 <select name="tipo" id="tipo" class="form-select" required>
@@ -101,6 +102,7 @@ if ($result && $result->num_rows > 0) {
             </div>
              </div>
             <div class="row">
+                 <br/>
                 <div class="col-md-6 mb-3">
                     <label for="estado" class="form-label">Estado</label>
                     <select name="estado" id="estado" class="form-select" required>
