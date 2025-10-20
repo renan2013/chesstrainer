@@ -146,7 +146,7 @@ if ($result && $result->num_rows > 0) {
             </div>
             </div>
 
-
+            <br/>
             <div class="row">
             <div class="col-md-6">
                 <label for="imagen_categoria" class="form-label">Imagen de la Categoría</label>
@@ -161,7 +161,7 @@ if ($result && $result->num_rows > 0) {
             </div>
             </div>
 
-
+            <br/>
 
             <div class="d-grid">
                 <button type="submit" name="add_categoria" class="btn btn-primary">Añadir Categoría</button>
