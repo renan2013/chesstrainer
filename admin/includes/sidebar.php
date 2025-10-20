@@ -9,7 +9,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="index.php">Inicio..</a></li>
+                <li class="nav-item"><a class="nav-link" href="index.php">Inicio</a></li>
                 <li class="nav-item"><a class="nav-link" href="gestionar_categorias.php">Categorías</a></li>
                 <li class="nav-item"><a class="nav-link" href="gestionar_publicaciones.php">Publicaciones</a></li>
                 <?php if (isset($_SESSION['rol']) && in_array($_SESSION['rol'], ['administrador', 'instructor'])): ?>
