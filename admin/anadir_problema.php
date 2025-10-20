@@ -107,7 +107,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 
-    <main class="main-content">
+    <main class="main-content" style="background-color: #f0f0f0;">
 
         <h2>Añadir Nuevo Diagrama</h2>
         <link rel="stylesheet" href="../css/chessboard-1.0.0.min.css">
@@ -122,6 +122,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 flex-wrap: nowrap; /* Prevent wrapping */
                 overflow-x: auto; /* Allow horizontal scrolling if needed */
                 justify-content: center; /* Center the pieces */
+            }
+            .form-control, .form-select {
+                background-color: #ffffff;
             }
         </style>
 
