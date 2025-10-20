@@ -87,8 +87,9 @@ if ($result && $result->num_rows > 0) {
                 <textarea name="descripcion" id="descripcion" class="form-control"></textarea>
             </div>
             </div>
+            <br/>
             <div class="row">
-                <br/>
+                
             <div class="col-md-6">
                 <label for="tipo" class="form-label">Tipo de Publicación</label>
                 <select name="tipo" id="tipo" class="form-select" required>
@@ -101,8 +102,9 @@ if ($result && $result->num_rows > 0) {
                 <input type="file" name="imagen_publicacion" id="imagen_publicacion" class="form-control">
             </div>
              </div>
+              <br/>
             <div class="row">
-                 <br/>
+                
                 <div class="col-md-6 mb-3">
                     <label for="estado" class="form-label">Estado</label>
                     <select name="estado" id="estado" class="form-select" required>
