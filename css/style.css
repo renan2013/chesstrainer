@@ -188,6 +188,8 @@ footer {
 .admin-container {
     width: 100%;
     display: flex;
+    background-color: #e7e9eb;
+    
 }
 
 /* Estilos del menú lateral (Sidebar) */
