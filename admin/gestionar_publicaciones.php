@@ -65,7 +65,7 @@ if ($result && $result->num_rows > 0) {
     <?php require_once 'includes/sidebar.php'; ?>
     <main class="main-content">
 
-        <h1 class="mb-4">Gestionar Publicaciones</h1>
+        <h3 class="mb-4">Gestionar Publicaciones</h3>
 
         <?php if(!empty($mensaje)): ?>
             <div class="alert alert-success" role="alert"><?php echo $mensaje; ?></div>
@@ -75,15 +75,17 @@ if ($result && $result->num_rows > 0) {
             <div class="alert alert-danger" role="alert"><?php echo $error; ?></div>
         <?php endif; ?>
 
-        <h2 class="mb-3">Añadir Nueva Publicación</h2>
+        <h4 class="mb-3">Añadir Nueva Publicación</h4>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" enctype="multipart/form-data">
-            <div class="mb-3">
+            <div class="row">
+            <div class="col-md-6">
                 <label for="titulo" class="form-label">Título</label>
                 <input type="text" name="titulo" id="titulo" class="form-control" required>
             </div>
-            <div class="mb-3">
+            <div class="col-md-6">
                 <label for="descripcion" class="form-label">Descripción</label>
                 <textarea name="descripcion" id="descripcion" class="form-control"></textarea>
+            </div>
             </div>
             <div class="mb-3">
                 <label for="tipo" class="form-label">Tipo de Publicación</label>
