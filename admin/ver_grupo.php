@@ -16,109 +16,100 @@ $id_grupo = $_GET['id'];
 
 $mensaje = '';
 
-// --- LÓGICA PARA AÑADIR MIEMBRO ---
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_member'])) {
-    $id_usuario_a_anadir = $_POST['id_usuario'];
-    if (!empty($id_usuario_a_anadir)) {
-        $stmt = $conn->prepare("INSERT INTO grupo_miembros (id_grupo, id_usuario) VALUES (?, ?)");
-        $stmt->bind_param("ii", $id_grupo, $id_usuario_a_anadir);
-        if (!$stmt->execute()) {
-            $mensaje = "<div class='alert alert-danger'>Error al añadir miembro.</div>";
+// --- LÓGICA PARA PROCESAR FORMULARIOS ---
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // AÑADIR MIEMBRO
+    if (isset($_POST['add_member'])) {
+        $id_usuario_a_anadir = $_POST['id_usuario'];
+        if (!empty($id_usuario_a_anadir)) {
+            $stmt = $conn->prepare("INSERT INTO grupo_miembros (id_grupo, id_usuario) VALUES (?, ?) ON DUPLICATE KEY UPDATE id_usuario=id_usuario");
+            $stmt->bind_param("ii", $id_grupo, $id_usuario_a_anadir);
+            if (!$stmt->execute()) { $mensaje = "<div class='alert alert-danger'>Error al añadir miembro.</div>"; }
+            $stmt->close();
+            header("Location: ver_grupo.php?id=" . $id_grupo); exit;
         }
-        $stmt->close();
-        header("Location: ver_grupo.php?id=" . $id_grupo);
-        exit;
+    }
+    // ASIGNAR MATERIAL
+    if (isset($_POST['add_material'])) {
+        $material_compuesto = $_POST['material'];
+        if (!empty($material_compuesto)) {
+            list($tipo_material, $id_material) = explode('-', $material_compuesto);
+            $id_material = intval($id_material);
+
+            if (($tipo_material == 'publicacion' || $tipo_material == 'categoria') && $id_material > 0) {
+                $stmt = $conn->prepare("INSERT INTO grupo_material (id_grupo, id_material, tipo_material) VALUES (?, ?, ?)");
+                $stmt->bind_param("iis", $id_grupo, $id_material, $tipo_material);
+                if (!$stmt->execute()) { $mensaje = "<div class='alert alert-danger'>Error al asignar material.</div>"; }
+                $stmt->close();
+                header("Location: ver_grupo.php?id=" . $id_grupo); exit;
+            }
+        }
     }
 }
 
-// --- LÓGICA PARA QUITAR MIEMBRO ---
+// --- LÓGICA PARA QUITAR ---
 if (isset($_GET['remove_member']) && filter_var($_GET['remove_member'], FILTER_VALIDATE_INT)) {
     $id_usuario_a_quitar = $_GET['remove_member'];
     $stmt = $conn->prepare("DELETE FROM grupo_miembros WHERE id_grupo = ? AND id_usuario = ?");
     $stmt->bind_param("ii", $id_grupo, $id_usuario_a_quitar);
-    if (!$stmt->execute()) {
-        $mensaje = "<div class='alert alert-danger'>Error al quitar miembro.</div>";
-    }
+    if (!$stmt->execute()) { $mensaje = "<div class='alert alert-danger'>Error al quitar miembro.</div>"; }
     $stmt->close();
-    header("Location: ver_grupo.php?id=" . $id_grupo);
-    exit;
+    header("Location: ver_grupo.php?id=" . $id_grupo); exit;
 }
 
+// --- OBTENER DATOS PARA MOSTRAR ---
 
-// 1. Obtener detalles del grupo y del instructor
+// 1. Detalles del grupo
 $stmt_grupo = $conn->prepare("SELECT g.id, g.nombre, g.descripcion, u.nombre_usuario AS instructor_nombre FROM grupos g JOIN usuarios u ON g.id_instructor = u.id_usuarios WHERE g.id = ?");
 $stmt_grupo->bind_param("i", $id_grupo);
 $stmt_grupo->execute();
 $result_grupo = $stmt_grupo->get_result();
-if ($result_grupo->num_rows === 0) {
-    echo "Grupo no encontrado.";
-    exit;
-}
+if ($result_grupo->num_rows === 0) { echo "Grupo no encontrado."; exit; }
 $grupo = $result_grupo->fetch_assoc();
 $stmt_grupo->close();
 
-// 2. Obtener miembros del grupo
+// 2. Miembros del grupo
 $stmt_miembros = $conn->prepare("SELECT u.id_usuarios, u.nombre_completo FROM grupo_miembros gm JOIN usuarios u ON gm.id_usuario = u.id_usuarios WHERE gm.id_grupo = ? ORDER BY u.nombre_completo");
 $stmt_miembros->bind_param("i", $id_grupo);
 $stmt_miembros->execute();
-$result_miembros = $stmt_miembros->get_result();
-$miembros = [];
-while ($row = $result_miembros->fetch_assoc()) {
-    $miembros[] = $row;
-}
+$miembros = $stmt_miembros->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt_miembros->close();
 
-// 3. Obtener usuarios que NO están en el grupo para el dropdown
+// 3. Usuarios que NO están en el grupo
 $stmt_no_miembros = $conn->prepare("SELECT id_usuarios, nombre_completo FROM usuarios WHERE rol = 'usuario' AND id_usuarios NOT IN (SELECT id_usuario FROM grupo_miembros WHERE id_grupo = ?) ORDER BY nombre_completo");
 $stmt_no_miembros->bind_param("i", $id_grupo);
 $stmt_no_miembros->execute();
-$result_no_miembros = $stmt_no_miembros->get_result();
-$no_miembros = [];
-while ($row = $result_no_miembros->fetch_assoc()) {
-    $no_miembros[] = $row;
-}
+$no_miembros = $stmt_no_miembros->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt_no_miembros->close();
 
-
-// 4. Obtener material asignado
+// 4. Material asignado
 $stmt_material = $conn->prepare("SELECT id, id_material, tipo_material FROM grupo_material WHERE id_grupo = ?");
 $stmt_material->bind_param("i", $id_grupo);
 $stmt_material->execute();
-$result_material = $stmt_material->get_result();
-$materiales = [];
-while ($row = $result_material->fetch_assoc()) {
-    $materiales[] = $row;
-}
+$materiales_asignados = $stmt_material->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt_material->close();
 
-// Para cada material, obtener el nombre real
+// 5. Material disponible (Publicaciones y Categorías)
+$publicaciones_disponibles = $conn->query("SELECT id_publicacion, titulo FROM publicacion WHERE id_publicacion NOT IN (SELECT id_material FROM grupo_material WHERE id_grupo = $id_grupo AND tipo_material = 'publicacion') ORDER BY titulo")->fetch_all(MYSQLI_ASSOC);
+$categorias_disponibles = $conn->query("SELECT id_categorias, nombre_categoria FROM categorias WHERE id_categorias NOT IN (SELECT id_material FROM grupo_material WHERE id_grupo = $id_grupo AND tipo_material = 'categoria') ORDER BY nombre_categoria")->fetch_all(MYSQLI_ASSOC);
+
 $materiales_con_nombre = [];
-foreach ($materiales as $material) {
+foreach ($materiales_asignados as $material) {
     $nombre_material = '[Material no encontrado]';
     if ($material['tipo_material'] == 'publicacion') {
         $stmt = $conn->prepare("SELECT titulo FROM publicacion WHERE id_publicacion = ?");
         $stmt->bind_param("i", $material['id_material']);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        if ($res->num_rows > 0) {
-            $nombre_material = $res->fetch_assoc()['titulo'];
-        }
-        $stmt->close();
-    } elseif ($material['tipo_material'] == 'categoria') {
+    } else {
         $stmt = $conn->prepare("SELECT nombre_categoria FROM categorias WHERE id_categorias = ?");
         $stmt->bind_param("i", $material['id_material']);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        if ($res->num_rows > 0) {
-            $nombre_material = $res->fetch_assoc()['nombre_categoria'];
-        }
-        $stmt->close();
     }
-    $materiales_con_nombre[] = [
-        'id' => $material['id'],
-        'nombre' => $nombre_material,
-        'tipo' => ucfirst($material['tipo_material'])
-    ];
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res->num_rows > 0) {
+        $nombre_material = $res->fetch_assoc()[($material['tipo_material'] == 'publicacion') ? 'titulo' : 'nombre_categoria'];
+    }
+    $stmt->close();
+    $materiales_con_nombre[] = ['id' => $material['id'], 'nombre' => $nombre_material, 'tipo' => ucfirst($material['tipo_material'])];
 }
 
 $conn->close();
@@ -152,7 +143,6 @@ $conn->close();
                 </ul>
             <?php endif; ?>
             
-            <!-- Formulario para añadir miembros -->
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Añadir Miembro</h5>
@@ -163,9 +153,7 @@ $conn->close();
                             <select class="form-select" id="id_usuario" name="id_usuario" required>
                                 <option value="">-- Estudiantes disponibles --</option>
                                 <?php foreach ($no_miembros as $estudiante): ?>
-                                    <option value="<?php echo $estudiante['id_usuarios']; ?>">
-                                        <?php echo htmlspecialchars($estudiante['nombre_completo']); ?>
-                                    </option>
+                                    <option value="<?php echo $estudiante['id_usuarios']; ?>"><?php echo htmlspecialchars($estudiante['nombre_completo']); ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -193,7 +181,32 @@ $conn->close();
                     <?php endforeach; ?>
                 </ul>
             <?php endif; ?>
-            <!-- Futuro formulario para asignar material aquí -->
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Asignar Material</h5>
+                    <form action="ver_grupo.php?id=<?php echo $id_grupo; ?>" method="post">
+                        <input type="hidden" name="add_material" value="1">
+                        <div class="mb-3">
+                            <label for="material" class="form-label">Seleccionar Material:</label>
+                            <select class="form-select" id="material" name="material" required>
+                                <option value="">-- Material disponible --</option>
+                                <optgroup label="Publicaciones">
+                                    <?php foreach ($publicaciones_disponibles as $pub): ?>
+                                        <option value="publicacion-<?php echo $pub['id_publicacion']; ?>"><?php echo htmlspecialchars($pub['titulo']); ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                                <optgroup label="Categorías">
+                                    <?php foreach ($categorias_disponibles as $cat): ?>
+                                        <option value="categoria-<?php echo $cat['id_categorias']; ?>"><?php echo htmlspecialchars($cat['nombre_categoria']); ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Asignar Material</button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
