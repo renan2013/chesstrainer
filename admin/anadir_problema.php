@@ -184,7 +184,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <div id="pgn-container" class="col-md-4 mt-3" > <!-- For the PGN moves -->
                     <p>Movimientos</p>
-                    <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto; border-radius: 15px;">
+                    <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto; border-radius: 10px;">
                         <div class="d-flex justify-content-between">
                             <p class="text-center">Blancas</p>
                             <p class="text-center">Negras</p>
@@ -249,7 +249,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 
-                    <div class="mb-3">
+                    <div class="col-md-12">
                         <label for="tipo_problema" class="form-label">Tipo de Problema</label>
                         <select name="tipo_problema" id="tipo_problema" class="form-select" required>
                             <option value="">Selecciona</option>
