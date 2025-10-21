@@ -16,7 +16,7 @@ $id_grupo = $_GET['id'];
 
 $mensaje = '';
 
-// --- LÓGICA PARA PROCESAR FORMULARIOS ---
+// --- LÓGICA PARA PROCESAR FORMULARIOS POST ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // AÑADIR MIEMBRO
     if (isset($_POST['add_member'])) {
@@ -47,14 +47,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 
-// --- LÓGICA PARA QUITAR ---
-if (isset($_GET['remove_member']) && filter_var($_GET['remove_member'], FILTER_VALIDATE_INT)) {
-    $id_usuario_a_quitar = $_GET['remove_member'];
-    $stmt = $conn->prepare("DELETE FROM grupo_miembros WHERE id_grupo = ? AND id_usuario = ?");
-    $stmt->bind_param("ii", $id_grupo, $id_usuario_a_quitar);
-    if (!$stmt->execute()) { $mensaje = "<div class='alert alert-danger'>Error al quitar miembro.</div>"; }
-    $stmt->close();
-    header("Location: ver_grupo.php?id=" . $id_grupo); exit;
+// --- LÓGICA PARA QUITAR (GET) ---
+if ($_SERVER["REQUEST_METHOD"] == "GET") {
+    // QUITAR MIEMBRO
+    if (isset($_GET['remove_member']) && filter_var($_GET['remove_member'], FILTER_VALIDATE_INT)) {
+        $id_usuario_a_quitar = $_GET['remove_member'];
+        $stmt = $conn->prepare("DELETE FROM grupo_miembros WHERE id_grupo = ? AND id_usuario = ?");
+        $stmt->bind_param("ii", $id_grupo, $id_usuario_a_quitar);
+        if (!$stmt->execute()) { $mensaje = "<div class='alert alert-danger'>Error al quitar miembro.</div>"; }
+        $stmt->close();
+        header("Location: ver_grupo.php?id=" . $id_grupo); exit;
+    }
+    // QUITAR MATERIAL
+    if (isset($_GET['remove_material']) && filter_var($_GET['remove_material'], FILTER_VALIDATE_INT)) {
+        $id_material_a_quitar = $_GET['remove_material'];
+        $stmt = $conn->prepare("DELETE FROM grupo_material WHERE id = ? AND id_grupo = ?");
+        $stmt->bind_param("ii", $id_material_a_quitar, $id_grupo);
+        if (!$stmt->execute()) { $mensaje = "<div class='alert alert-danger'>Error al quitar material.</div>"; }
+        $stmt->close();
+        header("Location: ver_grupo.php?id=" . $id_grupo); exit;
+    }
 }
 
 // --- OBTENER DATOS PARA MOSTRAR ---
@@ -176,7 +188,7 @@ $conn->close();
                                 <?php echo htmlspecialchars($material['nombre']); ?>
                                 <span class="badge bg-info ms-2"><?php echo htmlspecialchars($material['tipo']); ?></span>
                             </div>
-                            <a href="#" class="btn btn-danger btn-sm">Quitar</a> <!-- Funcionalidad futura -->
+                            <a href="ver_grupo.php?id=<?php echo $id_grupo; ?>&remove_material=<?php echo $material['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres quitar este material del grupo?');">Quitar</a>
                         </li>
                     <?php endforeach; ?>
                 </ul>

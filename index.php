@@ -1,5 +1,5 @@
 <?php
-$page_title = "Publicaciones - Ajepuris";
+$page_title = "Inicio - Chess Trainer";
 require_once 'includes/header.php';
 
 if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
@@ -7,184 +7,159 @@ if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true) {
     exit;
 }
 
+$id_usuario_actual = $_SESSION["id_usuarios"];
+$rol_usuario_actual = $_SESSION['rol'];
+
 // Fetch user's rating
 $user_rating = 0;
 $sql_user_rating = "SELECT rating FROM usuarios WHERE id_usuarios = ?";
 if ($stmt_user_rating = $conn->prepare($sql_user_rating)) {
-    $stmt_user_rating->bind_param("i", $_SESSION["id_usuarios"]);
+    $stmt_user_rating->bind_param("i", $id_usuario_actual);
     $stmt_user_rating->execute();
     $stmt_user_rating->bind_result($user_rating);
     $stmt_user_rating->fetch();
     $stmt_user_rating->close();
 }
 
-// Fetch publications based on user role
-$publications = [];
-// MODIFICADO: Añadido el campo 'tipo' a la consulta
-$sql_publications = "SELECT id_publicacion, titulo, descripcion, tipo, imagen_publicacion, estado FROM publicacion";
+$mis_grupos = [];
+if ($rol_usuario_actual == 'usuario') {
+    // Lógica para estudiantes: obtener sus grupos y materiales
+    $stmt_grupos = $conn->prepare("SELECT g.id, g.nombre, u.nombre_completo AS instructor_nombre FROM grupos g JOIN grupo_miembros gm ON g.id = gm.id_grupo JOIN usuarios u ON g.id_instructor = u.id_usuarios WHERE gm.id_usuario = ? ORDER BY g.nombre");
+    $stmt_grupos->bind_param("i", $id_usuario_actual);
+    $stmt_grupos->execute();
+    $result_grupos = $stmt_grupos->get_result();
 
-// If the user is not an admin, only show active publications
-if (!isset($_SESSION['rol']) || !in_array($_SESSION['rol'], ['administrador', 'creador_contenido'])) {
-    $sql_publications .= " WHERE estado = 'activo'";
-}
+    while ($grupo = $result_grupos->fetch_assoc()) {
+        $id_grupo = $grupo['id'];
+        $mis_grupos[$id_grupo] = [
+            'nombre' => $grupo['nombre'],
+            'instructor' => $grupo['instructor_nombre'],
+            'materiales' => []
+        ];
 
-$sql_publications .= " ORDER BY orden ASC, titulo ASC";
-$result_publications = $conn->query($sql_publications);
-if ($result_publications) {
-    while ($row = $result_publications->fetch_assoc()) {
-        $publications[] = $row;
+        $stmt_materiales = $conn->prepare("SELECT id_material, tipo_material FROM grupo_material WHERE id_grupo = ?");
+        $stmt_materiales->bind_param("i", $id_grupo);
+        $stmt_materiales->execute();
+        $result_materiales = $stmt_materiales->get_result();
+
+        while ($material = $result_materiales->fetch_assoc()) {
+            if ($material['tipo_material'] == 'publicacion') {
+                $stmt_pub = $conn->prepare("SELECT id_publicacion, titulo, descripcion, tipo, imagen_publicacion FROM publicacion WHERE id_publicacion = ? AND estado = 'activo'");
+                $stmt_pub->bind_param("i", $material['id_material']);
+                $stmt_pub->execute();
+                $res_pub = $stmt_pub->get_result();
+                if ($pub = $res_pub->fetch_assoc()) {
+                    $mis_grupos[$id_grupo]['materiales'][] = $pub;
+                }
+                $stmt_pub->close();
+            } elseif ($material['tipo_material'] == 'categoria') {
+                // Si es una categoría, la tratamos como una "publicación" especial para la tarjeta
+                $stmt_cat = $conn->prepare("SELECT c.id_categorias, c.nombre_categoria, c.imagen_categoria, p.tipo FROM categorias c JOIN publicacion p ON c.id_publicacion = p.id_publicacion WHERE c.id_categorias = ? AND c.estado = 'activo'");
+                $stmt_cat->bind_param("i", $material['id_material']);
+                $stmt_cat->execute();
+                $res_cat = $stmt_cat->get_result();
+                if ($cat = $res_cat->fetch_assoc()) {
+                    $mis_grupos[$id_grupo]['materiales'][] = [
+                        'id_categorias' => $cat['id_categorias'],
+                        'titulo' => $cat['nombre_categoria'],
+                        'descripcion' => 'Categoría de ' . $cat['tipo'],
+                        'tipo' => $cat['tipo'],
+                        'imagen_publicacion' => $cat['imagen_categoria']
+                    ];
+                }
+                $stmt_cat->close();
+            }
+        }
+        $stmt_materiales->close();
+    }
+    $stmt_grupos->close();
+} else {
+    // Lógica para Admins/Instructores: obtener todas las publicaciones
+    $publications = [];
+    $sql_publications = "SELECT id_publicacion, titulo, descripcion, tipo, imagen_publicacion, estado FROM publicacion ORDER BY orden ASC, titulo ASC";
+    $result_publications = $conn->query($sql_publications);
+    if ($result_publications) {
+        while ($row = $result_publications->fetch_assoc()) {
+            $publications[] = $row;
+        }
     }
 }
 
-// Fetch top 3 users for ranking modal
-$top_users = [];
-$sql_top_users = "
-    SELECT
-        u.nombre_usuario,
-        u.rating
-    FROM
-        usuarios u
-    ORDER BY
-        u.rating DESC
-    LIMIT 3;
-";
-
-$result_top_users = $conn->query($sql_top_users);
-if ($result_top_users) {
-    while ($row = $result_top_users->fetch_assoc()) {
-        $top_users[] = $row;
-    }
-}
-
+$conn->close();
 ?>
 
 <?php include 'includes/lichess_menu.php'; ?>
 <div class="container">
     <br/><br/>
 
-<div class="row row-cols-1 row-cols-md-4 g-4">
-    
-    <?php if (!empty($publications)): ?>
-        <?php foreach ($publications as $pub): ?>
-            <div class="col">
-                <div class="card h-100" style="position: relative;">
-                    <?php
-                    $badge_text = '';
-                    $badge_bg = '';
-                    if ($pub['tipo'] == 'Problema') {
-                        $badge_text = 'Test';
-                        $badge_bg = 'bg-primary';
-                    } elseif ($pub['tipo'] == 'Estudio') {
-                        $badge_text = 'Estudio';
-                        $badge_bg = 'bg-success';
-                    }
-                    ?>
-                    <?php if ($badge_text): ?>
-                        <span class="badge rounded-pill <?php echo $badge_bg; ?>" style="position: absolute; top: -14px; right: 16px; z-index: 10; font-size: 0.9rem; border: 2px solid white;">
-                            <?php echo $badge_text; ?>
-                        </span>
-                    <?php endif; ?>
-
-                    <a href="secciones.php?id_publicacion=<?php echo $pub['id_publicacion']; ?>" class="text-decoration-none text-dark">
-                        <?php if (!empty($pub['imagen_publicacion'])): ?>
-                            <img src="admin/<?php echo htmlspecialchars($pub['imagen_publicacion']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($pub['titulo']); ?>" style="height: 200px; object-fit: cover;">
+    <?php if ($rol_usuario_actual == 'usuario'): ?>
+        <!-- VISTA PARA ESTUDIANTES -->
+        <?php if (!empty($mis_grupos)): ?>
+            <?php foreach ($mis_grupos as $grupo): ?>
+                <div class="mb-5">
+                    <h3><?php echo htmlspecialchars($grupo['nombre']); ?></h3>
+                    <p class="text-muted">Instructor: <?php echo htmlspecialchars($grupo['instructor']); ?></p>
+                    <hr>
+                    <div class="row row-cols-1 row-cols-md-4 g-4">
+                        <?php if (!empty($grupo['materiales'])): ?>
+                            <?php foreach ($grupo['materiales' ] as $mat): ?>
+                                <div class="col">
+                                    <div class="card h-100">
+                                        <?php 
+                                        // Determinar el enlace y el tipo de badge
+                                        $es_publicacion = isset($mat['id_publicacion']);
+                                        $link = $es_publicacion ? "secciones.php?id_publicacion=" . $mat['id_publicacion'] : "categoria.php?id=" . $mat['id_categorias'];
+                                        $badge_text = ($mat['tipo'] == 'Problema') ? 'Test' : 'Estudio';
+                                        $badge_bg = ($mat['tipo'] == 'Problema') ? 'bg-primary' : 'bg-success';
+                                        ?>
+                                        <span class="badge rounded-pill <?php echo $badge_bg; ?>" style="position: absolute; top: -14px; right: 16px; z-index: 10; font-size: 0.9rem; border: 2px solid white;"><?php echo $badge_text; ?></span>
+                                        <a href="<?php echo $link; ?>" class="text-decoration-none text-dark">
+                                            <img src="admin/<?php echo htmlspecialchars($mat['imagen_publicacion']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($mat['titulo']); ?>" style="height: 200px; object-fit: cover;">
+                                            <div class="card-body">
+                                                <h5 class="card-title"><?php echo htmlspecialchars($mat['titulo']); ?></h5>
+                                                <p class="card-text"><?php echo htmlspecialchars($mat['descripcion']); ?></p>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
                         <?php else: ?>
-                            <div style="height: 200px; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center;">
-                                <small class="text-muted">Sin imagen</small>
-                            </div>
+                            <div class="col-12"><p class="text-muted">No hay material de estudio asignado a este grupo.</p></div>
                         <?php endif; ?>
-                        <div class="card-body">
-                            <h5 class="card-title"><?php echo htmlspecialchars($pub['titulo']); ?></h5>
-                            <p class="card-text"><?php echo htmlspecialchars($pub['descripcion']); ?></p>
-                            <hr>
-                            <h6>Capítulos:</h6>
-                            <?php
-                            $id_publicacion_actual = $pub['id_publicacion'];
-                            $sql_capitulos = "SELECT nombre_categoria FROM categorias WHERE id_publicacion = ? ORDER BY nombre_categoria ASC";
-                            if ($stmt_capitulos = $conn->prepare($sql_capitulos)) {
-                                $stmt_capitulos->bind_param("i", $id_publicacion_actual);
-                                $stmt_capitulos->execute();
-                                $result_capitulos = $stmt_capitulos->get_result();
-                                $capitulos = $result_capitulos->fetch_all(MYSQLI_ASSOC);
-                                $total_capitulos = count($capitulos);
-
-                                if ($total_capitulos > 0) {
-                                    echo '<ol class="list-group list-group-numbered">';
-                                    $limit = 5;
-                                    for ($i = 0; $i < min($limit, $total_capitulos); $i++) {
-                                        echo '<li class="list-group-item py-1">' . htmlspecialchars($capitulos[$i]['nombre_categoria']) . '</li>';
-                                    }
-                                    if ($total_capitulos > $limit) {
-                                        echo '<li class="list-group-item py-1 text-muted">... y ' . ($total_capitulos - $limit) . ' más</li>';
-                                    }
-                                    echo '</ol>';
-                                } else {
-                                    echo '<p class="card-text"><small class="text-muted">No hay capítulos registrados.</small></p>';
-                                }
-                                $stmt_capitulos->close();
-                            }
-                            ?>
-                        </div>
-                    </a>
+                    </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="alert alert-info text-center">No estás inscrito en ningún grupo. Contacta a tu instructor para que te añada a un grupo de estudio.</div>
+        <?php endif; ?>
+
     <?php else: ?>
-        <div class="col-12">
-            <p class="text-center text-muted">No hay publicaciones disponibles.</p>
+        <!-- VISTA PARA ADMINS E INSTRUCTORES (VISTA ORIGINAL) -->
+        <div class="row row-cols-1 row-cols-md-4 g-4">
+            <?php if (!empty($publications)): ?>
+                <?php foreach ($publications as $pub): ?>
+                    <div class="col">
+                        <div class="card h-100" style="position: relative;">
+                            <?php
+                            $badge_text = ($pub['tipo'] == 'Problema') ? 'Test' : 'Estudio';
+                            $badge_bg = ($pub['tipo'] == 'Problema') ? 'bg-primary' : 'bg-success';
+                            ?>
+                            <span class="badge rounded-pill <?php echo $badge_bg; ?>" style="position: absolute; top: -14px; right: 16px; z-index: 10; font-size: 0.9rem; border: 2px solid white;"><?php echo $badge_text; ?></span>
+                            <a href="secciones.php?id_publicacion=<?php echo $pub['id_publicacion']; ?>" class="text-decoration-none text-dark">
+                                <img src="admin/<?php echo htmlspecialchars($pub['imagen_publicacion']); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($pub['titulo']); ?>" style="height: 200px; object-fit: cover;">
+                                <div class="card-body">
+                                    <h5 class="card-title"><?php echo htmlspecialchars($pub['titulo']); ?></h5>
+                                    <p class="card-text"><?php echo htmlspecialchars($pub['descripcion']); ?></p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12"><p class="text-center text-muted">No hay publicaciones disponibles.</p></div>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
-    
-</div>
-
-<!-- Ranking Modal -->
-<div class="modal fade" id="rankingModal" tabindex="-1" aria-labelledby="rankingModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <div class="d-flex flex-column align-items-center w-100">
-            <img src="https://ajedrezpuriscal.com/chess_trainer/img/logo_blanco.svg" alt="Logo Chess Trainer" style="width: 120px; margin-bottom: 10px;">
-            <h5 class="modal-title" id="rankingModalLabel"><i class="fas fa-trophy me-2"></i> ¡Top 3 Jugadores!</h5>
-            <p class="mb-0"><small>Fecha: <?php echo date('d/m/Y'); ?></small></p>
-        </div>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body text-center">
-        <?php if (!empty($top_users)): ?>
-            <p class="lead">¡Felicidades a nuestros jugadores más destacados!</p>
-            <ul class="list-group list-group-flush mt-3">
-                <?php foreach ($top_users as $index => $user): ?>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>
-                            <?php if ($index === 0): ?><i class="fas fa-medal text-warning me-2 fa-lg"></i><?php endif; ?>
-                            <?php if ($index === 1): ?><i class="fas fa-medal text-secondary me-2 fa-lg"></i><?php endif; ?>
-                            <?php if ($index === 2): ?><i class="fas fa-medal text-bronze me-2 fa-lg"></i><?php endif; ?>
-                            <strong><?php echo htmlspecialchars($user['nombre_usuario']); ?></strong>
-                        </span>
-                        <span class="badge bg-info rounded-pill"><?php echo htmlspecialchars($user['rating']); ?></span>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
-        <?php else: ?>
-            <p class="text-muted">Aún no hay suficientes datos para mostrar el ranking.</p>
-        <?php endif; ?>
-      </div>
-      <div class="modal-footer justify-content-center">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 </div>
 <?php require_once 'includes/footer.php'; ?>
-
-<script>
-$(document).ready(function() {
-    <?php if (isset($_SESSION['show_ranking_modal']) && $_SESSION['show_ranking_modal'] === true): ?>
-        var rankingModal = new bootstrap.Modal(document.getElementById('rankingModal'));
-        rankingModal.show();
-        <?php unset($_SESSION['show_ranking_modal']); ?>
-    <?php endif; ?>
-});
-</script>
