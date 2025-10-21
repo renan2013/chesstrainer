@@ -54,7 +54,7 @@ $conn->close();
                             <td><?php echo htmlspecialchars($grupo['instructor_nombre']); ?></td>
                             <td>
                                 <a href="ver_grupo.php?id=<?php echo $grupo['id']; ?>" class="btn btn-primary btn-sm">Ver/Editar</a>
-                                <a href="eliminar_grupo.php?id=<?php echo $grupo['id']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres eliminar este grupo?');">Eliminar</a>
+                                <a href="eliminar_grupo.php?id=<?php echo $grupo['id']; ?>" class="btn btn-danger btn-sm" onclick="event.preventDefault(); confirmDelete(this.href);">Eliminar</a>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -67,5 +67,24 @@ $conn->close();
         </table>
     </div>
 </div>
+
+<script>
+function confirmDelete(url) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "¡No podrás revertir esta acción!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, ¡eliminar!',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = url;
+        }
+    });
+}
+</script>
 
 <?php include 'includes/footer.php'; ?>
