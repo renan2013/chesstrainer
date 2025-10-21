@@ -18,8 +18,10 @@ if ($rol_usuario_actual == 'usuario') {
     $stmt_grupos->bind_param("i", $id_usuario_actual);
     $stmt_grupos->execute();
     $result_grupos = $stmt_grupos->get_result();
+    $grupos_data = $result_grupos->fetch_all(MYSQLI_ASSOC);
+    $stmt_grupos->close();
 
-    while ($grupo = $result_grupos->fetch_assoc()) {
+    foreach ($grupos_data as $grupo) {
         $id_grupo = $grupo['id'];
         $mis_grupos[$id_grupo] = [
             'nombre' => $grupo['nombre'],
@@ -27,18 +29,22 @@ if ($rol_usuario_actual == 'usuario') {
             'materiales' => []
         ];
 
-        // 2. Obtener los materiales de cada grupo
+        // 2. Obtener los IDs de los materiales del grupo
         $stmt_materiales = $conn->prepare("SELECT id_material, tipo_material FROM grupo_material WHERE id_grupo = ?");
         $stmt_materiales->bind_param("i", $id_grupo);
         $stmt_materiales->execute();
         $result_materiales = $stmt_materiales->get_result();
+        $materiales_data = $result_materiales->fetch_all(MYSQLI_ASSOC);
+        $stmt_materiales->close();
 
-        while ($material = $result_materiales->fetch_assoc()) {
+        // 3. Obtener detalles de cada material
+        foreach ($materiales_data as $material) {
             if ($material['tipo_material'] == 'publicacion') {
                 $stmt_pub = $conn->prepare("SELECT id_publicacion, titulo, descripcion, tipo, imagen_publicacion FROM publicacion WHERE id_publicacion = ? AND estado = 'activo'");
                 $stmt_pub->bind_param("i", $material['id_material']);
                 $stmt_pub->execute();
-                if ($pub = $stmt_pub->get_result()->fetch_assoc()) {
+                $res_pub = $stmt_pub->get_result();
+                if ($pub = $res_pub->fetch_assoc()) {
                     $mis_grupos[$id_grupo]['materiales'][] = $pub;
                 }
                 $stmt_pub->close();
@@ -46,7 +52,8 @@ if ($rol_usuario_actual == 'usuario') {
                 $stmt_cat = $conn->prepare("SELECT c.id_categorias, c.nombre_categoria, c.imagen_categoria, p.tipo FROM categorias c JOIN publicacion p ON c.id_publicacion = p.id_publicacion WHERE c.id_categorias = ? AND c.estado = 'activo'");
                 $stmt_cat->bind_param("i", $material['id_material']);
                 $stmt_cat->execute();
-                if ($cat = $stmt_cat->get_result()->fetch_assoc()) {
+                $res_cat = $stmt_cat->get_result();
+                if ($cat = $res_cat->fetch_assoc()) {
                     $mis_grupos[$id_grupo]['materiales'][] = [
                         'id_categorias' => $cat['id_categorias'],
                         'titulo' => $cat['nombre_categoria'],
@@ -58,18 +65,14 @@ if ($rol_usuario_actual == 'usuario') {
                 $stmt_cat->close();
             }
         }
-        $stmt_materiales->close();
     }
-    $stmt_grupos->close();
 
-    // 3. Obtener todas las publicaciones públicas
+    // 4. Obtener todas las publicaciones públicas
     $public_publications = [];
     $sql_public = "SELECT id_publicacion, titulo, descripcion, tipo, imagen_publicacion FROM publicacion WHERE estado = 'activo' AND disponible_para_todos = 1 ORDER BY orden ASC, titulo ASC";
     $result_public = $conn->query($sql_public);
     if ($result_public) {
-        while ($row = $result_public->fetch_assoc()) {
-            $public_publications[] = $row;
-        }
+        $public_publications = $result_public->fetch_all(MYSQLI_ASSOC);
     }
 
 } else {
@@ -78,9 +81,7 @@ if ($rol_usuario_actual == 'usuario') {
     $sql_publications = "SELECT id_publicacion, titulo, descripcion, tipo, imagen_publicacion, estado FROM publicacion ORDER BY orden ASC, titulo ASC";
     $result_publications = $conn->query($sql_publications);
     if ($result_publications) {
-        while ($row = $result_publications->fetch_assoc()) {
-            $publications[] = $row;
-        }
+        $publications = $result_publications->fetch_all(MYSQLI_ASSOC);
     }
 }
 
