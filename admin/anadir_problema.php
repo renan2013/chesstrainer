@@ -113,8 +113,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <link rel="stylesheet" href="../css/chessboard-1.0.0.min.css">
         <style>
             #board {
-                width: 80% !important; /* Make it responsive within its container */
-                max-width: 100%; /* Ensure it never exceeds its container's width */
                 margin: 0 auto; /* Center it within its column */
             }
             .spare-pieces-7492f { /* Assuming this is the correct class for the spare pieces container */
@@ -174,7 +172,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="row align-items-start">
                 <div class="col-md-4"> <!-- For the board -->
-                    <div id="board"></div>
+                    <div style="width: 80%; max-width: 100%; margin: 0 auto;">
+                        <div id="board"></div>
+                    </div>
                     <div class="text-center mt-3"> <!-- New div for buttons below board -->
                         <button type="button" id="startBtn" class="btn btn-secondary btn-sm">Posición Inicial</button>
                         <button type="button" id="clearBtn" class="btn btn-secondary btn-sm">Limpiar Tablero</button>
