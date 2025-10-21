@@ -202,21 +202,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <input type="text" name="fen" id="fen" class="form-control" required>
                 </div>
            
-
-
-
-                    <div class="col-md-12">
+                <div class="col-md-12">
                         <label for="solucion" class="form-label">Solución</label>
                         <textarea name="solucion" id="solucion" class="form-control" required></textarea>
                         <div id="solucion-feedback" class="form-text"></div>
-                    </div>
+                </div>
 
-                    <div class="mb-3">
+                <div class="col-md-12">
                         <label for="pgn" class="form-label">PGN</label>
                         <textarea name="pgn" id="pgn" class="form-control"></textarea>
-                    </div>
+                </div>
 
-                    <div class="mb-3">
+                <div class="col-md-12">
                         <label for="dificultad" class="form-label">Dificultad</label>
                         <select name="dificultad" id="dificultad" class="form-select" required>
                             <option value="">Selecciona</option>
@@ -225,7 +222,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <option value="Difícil">Difícil</option>
                             <option value="Experto">Experto</option>
                         </select>
-                    </div>
+                </div>
+
                     <div class="row">
                     <div class="col-md-8">
                         <label class="form-label">Juega</label>
