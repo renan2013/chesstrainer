@@ -20,25 +20,28 @@ $mensaje = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_member'])) {
     $id_usuario_a_anadir = $_POST['id_usuario'];
     if (!empty($id_usuario_a_anadir)) {
-        // Verificar que el usuario no sea ya miembro
-        $check_stmt = $conn->prepare("SELECT * FROM grupo_miembros WHERE id_grupo = ? AND id_usuario = ?");
-        $check_stmt->bind_param("ii", $id_grupo, $id_usuario_a_anadir);
-        $check_stmt->execute();
-        $check_result = $check_stmt->get_result();
-
-        if ($check_result->num_rows == 0) {
-            $insert_stmt = $conn->prepare("INSERT INTO grupo_miembros (id_grupo, id_usuario) VALUES (?, ?)");
-            $insert_stmt->bind_param("ii", $id_grupo, $id_usuario_a_anadir);
-            if (!$insert_stmt->execute()) {
-                $mensaje = "<div class='alert alert-danger'>Error al añadir miembro.</div>";
-            }
-            $insert_stmt->close();
+        $stmt = $conn->prepare("INSERT INTO grupo_miembros (id_grupo, id_usuario) VALUES (?, ?)");
+        $stmt->bind_param("ii", $id_grupo, $id_usuario_a_anadir);
+        if (!$stmt->execute()) {
+            $mensaje = "<div class='alert alert-danger'>Error al añadir miembro.</div>";
         }
-        $check_stmt->close();
-        // Redirigir para mostrar la lista actualizada y evitar reenvío de formulario
+        $stmt->close();
         header("Location: ver_grupo.php?id=" . $id_grupo);
         exit;
     }
+}
+
+// --- LÓGICA PARA QUITAR MIEMBRO ---
+if (isset($_GET['remove_member']) && filter_var($_GET['remove_member'], FILTER_VALIDATE_INT)) {
+    $id_usuario_a_quitar = $_GET['remove_member'];
+    $stmt = $conn->prepare("DELETE FROM grupo_miembros WHERE id_grupo = ? AND id_usuario = ?");
+    $stmt->bind_param("ii", $id_grupo, $id_usuario_a_quitar);
+    if (!$stmt->execute()) {
+        $mensaje = "<div class='alert alert-danger'>Error al quitar miembro.</div>";
+    }
+    $stmt->close();
+    header("Location: ver_grupo.php?id=" . $id_grupo);
+    exit;
 }
 
 
@@ -143,7 +146,7 @@ $conn->close();
                     <?php foreach ($miembros as $miembro): ?>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <?php echo htmlspecialchars($miembro['nombre_completo']); ?>
-                            <a href="#" class="btn btn-danger btn-sm">Quitar</a> <!-- Funcionalidad futura -->
+                            <a href="ver_grupo.php?id=<?php echo $id_grupo; ?>&remove_member=<?php echo $miembro['id_usuarios']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres quitar a este miembro del grupo?');">Quitar</a>
                         </li>
                     <?php endforeach; ?>
                 </ul>
