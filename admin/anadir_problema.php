@@ -645,7 +645,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         });
 
         function renderPgnMoves() {
-            pgnMovesContainer.innerHTML = '<div class="pgn-moves-header"><div class="w-50">Blancas</div><div class="w-50">Negras</div></div>'; // Add headers
+            pgnMovesContainer.innerHTML = '<div class="pgn-moves-header d-flex"><div class="w-50">Blancas</div><div class="w-50">Negras</div></div>'; // Add headers
             history = game.history({ verbose: true });
             let movesHtml = '<div class="pgn-moves-body">';
             let moveNumber = 1;
