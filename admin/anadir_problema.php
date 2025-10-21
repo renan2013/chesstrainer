@@ -183,7 +183,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
                 <div id="pgn-container" class="col-md-4 mt-3"> <!-- For the PGN moves -->
-                    <h4>Movimientos</h4>
+                    <p>Movimientos</p>
                     <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto;">
                         <div class="d-flex justify-content-between">
                             <h5 class="text-center">Blancas</h5>
@@ -196,10 +196,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 <div class="col-md-4"> <!-- Solucion and PGN inputs -->
                  
-                <div class="col-md-12" id="orden_wrapper">
-                    <label for="orden" class="form-label">Orden</label>
-                    <input type="number" name="orden" id="orden" class="form-control" value="0">
-                </div>
+                
                 <div class="col-md-12">
                     <label for="fen" class="form-label">FEN</label>
                     <input type="text" name="fen" id="fen" class="form-control" required>
@@ -229,7 +226,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <option value="Experto">Experto</option>
                         </select>
                     </div>
-                    <div class="mb-3">
+                    <div class="row">
+                    <div class="col-md-8">
                         <label class="form-label">Juega</label>
                         <div>
                             <div class="form-check form-check-inline">
@@ -243,6 +241,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <input type="hidden" name="juega" id="juega_hidden" value="w">
                         </div>
                     </div>
+
+                    <div class="col-md-4" id="orden_wrapper">
+                    <label for="orden" class="form-label">Orden</label>
+                    <input type="number" name="orden" id="orden" class="form-control" value="0">
+                    </div>
+                    </div>
+
+
+
+
                     <div class="mb-3">
                         <label for="tipo_problema" class="form-label">Tipo de Problema</label>
                         <select name="tipo_problema" id="tipo_problema" class="form-select" required>
