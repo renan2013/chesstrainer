@@ -192,7 +192,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto; border-radius: 10px;">
                         <div class="d-flex justify-content-between">
                             <p class="text-center">Blancas</p>
-                            <p class="text-center">Negras</p>
+                            <p class="text-center"><strong>Negras</strong></p>
                         </div>
                     </div>
                 </div>
