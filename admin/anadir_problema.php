@@ -121,11 +121,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 overflow-x: auto; /* Allow horizontal scrolling if needed */
                 justify-content: center; /* Center the pieces */
             }
-            .form-control, .form-select {
-                background-color: #ffffff;
-            }
-        </style>
-
+                            .form-control, .form-select {
+                                background-color: #ffffff;
+                            }
+                            .pgn-move-pair:nth-child(odd) {
+                                background-color: #f8f8f8; /* Un gris muy claro */
+                            }
+                            .pgn-move-pair:nth-child(even) {
+                                background-color: #ffffff; /* Blanco */
+                            }
+                        </style>
         <?php if(isset($_GET['success']) && $_GET['success'] == 1): ?>
             <div class="alert alert-success" role="alert">Diagrama añadido exitosamente.</div>
         <?php endif; ?>
