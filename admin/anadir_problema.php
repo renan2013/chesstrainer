@@ -127,11 +127,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             .pgn-move-pair:nth-child(odd) {
                                 background-color: #f8f8f8; /* Un gris muy claro */
                             }
-                            .pgn-move-pair:nth-child(even) {
-                                background-color: #ffffff; /* Blanco */
-                            }
-                        </style>
-        <?php if(isset($_GET['success']) && $_GET['success'] == 1): ?>
+                                            .pgn-move-pair:nth-child(even) {
+                                                background-color: #ffffff; /* Blanco */
+                                            }
+                                            .pgn-move.black {
+                                                font-weight: bold;
+                                            }
+                                        </style>        <?php if(isset($_GET['success']) && $_GET['success'] == 1): ?>
             <div class="alert alert-success" role="alert">Diagrama añadido exitosamente.</div>
         <?php endif; ?>
 
@@ -192,7 +194,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto; border-radius: 10px;">
                         <div class="d-flex justify-content-between">
                             <p class="text-center">Blancas</p>
-                            <p class="text-center"><strong>Negras</strong></p>
+                            <p class="text-center">Negras</p>
                         </div>
                     </div>
                 </div>
