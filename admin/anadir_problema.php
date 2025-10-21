@@ -102,7 +102,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
     }
-}
+}si
 ?>
 
 
@@ -113,7 +113,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <link rel="stylesheet" href="../css/chessboard-1.0.0.min.css">
         <style>
             #board {
-                width: 80%; /* Make it responsive within its container */
+                width: 100%; /* Make it responsive within its container */
                 max-width: 100%; /* Ensure it never exceeds its container's width */
                 margin: 0 auto; /* Center it within its column */
             }

@@ -39,6 +39,7 @@
                         Grupos
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdownGrupos">
+                        <li><a class="dropdown-item" href="crear_grupo.php">Crear Nuevo Grupo</a></li>
                         <li><a class="dropdown-item" href="grupos.php">Lista de grupos creados</a></li>
                     </ul>
                 </li>
