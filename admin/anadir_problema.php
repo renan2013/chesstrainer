@@ -163,7 +163,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="row align-items-start">
                 <div class="col-md-4"> <!-- For the board -->
-                    <div style="width: 80%; max-width: 100%; margin: 0 auto;">
+                    <div style="width: 70%; max-width: 100%; margin: 0 auto;">
                         <div id="board"></div>
                     </div>
                     <div class="text-center mt-3"> <!-- New div for buttons below board -->
