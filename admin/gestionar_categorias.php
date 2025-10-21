@@ -207,7 +207,7 @@ if ($result && $result->num_rows > 0) {
                                 <td>
                                     <?php if ($_SESSION['rol'] === 'administrador'): ?>
                                         <a href="editar_categoria.php?id=<?php echo $cat['id_categorias']; ?>" class="btn btn-warning btn-sm me-1">Editar</a>
-                                        <a href="eliminar_categoria.php?id=<?php echo $cat['id_categorias']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres eliminar esta categoría?');">Eliminar</a>
+                                        <a href="eliminar_categoria.php?id=<?php echo $cat['id_categorias']; ?>" class="btn btn-danger btn-sm" onclick="event.preventDefault(); confirmDelete(this.href);">Eliminar</a>
                                     <?php endif; ?>
                                 </td>
                             </tr>
