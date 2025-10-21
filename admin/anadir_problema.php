@@ -226,7 +226,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <div class="row">
                     <div class="col-md-8">
-                        <label class="form-label">Juega</label>
+                        <label class="form-label">Juega (cambiar turno)</label>
                         <div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="juega_radio" id="juega_blancas" value="w" checked disabled="true">
