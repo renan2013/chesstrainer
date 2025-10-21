@@ -159,16 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
             </div>
 
-            <div class="row mb-3">
-                <div class="col-md-2" id="orden_wrapper">
-                    <label for="orden" class="form-label">Orden</label>
-                    <input type="number" name="orden" id="orden" class="form-control" value="0">
-                </div>
-                <div class="col-md-10">
-                    <label for="fen" class="form-label">FEN</label>
-                    <input type="text" name="fen" id="fen" class="form-control" required>
-                </div>
-            </div>
+          
 
             <div class="row align-items-start">
                 <div class="col-md-4"> <!-- For the board -->
@@ -189,6 +180,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                     </div>
                 </div>
+
+
                 <div id="pgn-container" class="col-md-4 mt-3"> <!-- For the PGN moves -->
                     <h4>Movimientos</h4>
                     <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto;">
@@ -198,8 +191,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         </div>
                     </div>
                 </div>
+
+
+
                 <div class="col-md-4"> <!-- Solucion and PGN inputs -->
-                    <div class="mb-3">
+                 
+                <div class="col-md-12" id="orden_wrapper">
+                    <label for="orden" class="form-label">Orden</label>
+                    <input type="number" name="orden" id="orden" class="form-control" value="0">
+                </div>
+                <div class="col-md-12">
+                    <label for="fen" class="form-label">FEN</label>
+                    <input type="text" name="fen" id="fen" class="form-control" required>
+                </div>
+           
+
+
+
+                    <div class="col-md-12">
                         <label for="solucion" class="form-label">Solución</label>
                         <textarea name="solucion" id="solucion" class="form-control" required></textarea>
                         <div id="solucion-feedback" class="form-text"></div>
