@@ -1,8 +1,8 @@
 <?php
-$page_title = "Editar Publicación";
-require_once 'includes/header.php';
+session_start();
+require_once '../db_connect.php';
 
-if ($_SESSION['rol'] !== 'administrador') {
+if (!isset($_SESSION['id_usuarios']) || $_SESSION['rol'] !== 'administrador') {
     header("location: index.php");
     exit;
 }
@@ -18,6 +18,7 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $id_publicacion = $_GET['id'];
 
+// --- LÓGICA DE ACTUALIZACIÓN (POST) ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["edit_publicacion"])) {
     $titulo = trim($_POST["titulo"]);
     $descripcion = trim($_POST["descripcion"]);
@@ -60,6 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["edit_publicacion"])) {
     }
 }
 
+// --- LÓGICA PARA OBTENER DATOS (GET) ---
 $sql_select = "SELECT id_publicacion, titulo, descripcion, tipo, imagen_publicacion, estado, orden, disponible_para_todos FROM publicacion WHERE id_publicacion = ?";
 if ($stmt = $conn->prepare($sql_select)) {
     $stmt->bind_param("i", $id_publicacion);
@@ -73,6 +75,9 @@ if ($stmt = $conn->prepare($sql_select)) {
     }
     $stmt->close();
 }
+
+$page_title = "Editar Publicación";
+require_once 'includes/header.php';
 ?>
 
 <div class="container mt-4">
@@ -130,7 +135,8 @@ if ($stmt = $conn->prepare($sql_select)) {
             </label>
         </div>
         <div class="d-grid gap-2 d-md-flex justify-content-md-start mt-4">
-            <button type="submit" name="edit_publicacion" class="btn btn-primary">Guardar Cambios</button>
+            <input type="hidden" name="edit_publicacion" value="1">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
             <a href="gestionar_publicaciones.php" class="btn btn-secondary">Cancelar</a>
         </div>
     </form>
