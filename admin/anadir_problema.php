@@ -127,13 +127,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             .pgn-move-pair:nth-child(odd) {
                                 background-color: #f8f8f8; /* Un gris muy claro */
                             }
-                                            .pgn-move-pair:nth-child(even) {
-                                                background-color: #ffffff; /* Blanco */
-                                            }
-                                            .pgn-move.black {
-                                                font-weight: bold;
-                                            }
-                                        </style>        <?php if(isset($_GET['success']) && $_GET['success'] == 1): ?>
+                                                                            .pgn-move-pair:nth-child(even) {
+                                                                                background-color: #ffffff; /* Blanco */
+                                                                            }
+                                                                            .header-black-moves {
+                                                                                font-weight: bold;
+                                                                            }
+                                                                        </style>        <?php if(isset($_GET['success']) && $_GET['success'] == 1): ?>
             <div class="alert alert-success" role="alert">Diagrama añadido exitosamente.</div>
         <?php endif; ?>
 
@@ -652,7 +652,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         });
 
         function renderPgnMoves() {
-            pgnMovesContainer.innerHTML = '<div class="pgn-moves-header d-flex"><div class="w-50">Blancas</div><div class="w-50">Negras</div></div>'; // Add headers
+            pgnMovesContainer.innerHTML = '<div class="pgn-moves-header d-flex"><div class="w-50">Blancas</div><div class="w-50 header-black-moves">Negras</div></div>'; // Add headers
             history = game.history({ verbose: true });
             let movesHtml = '<div class="pgn-moves-body">';
             let moveNumber = 1;
