@@ -182,9 +182,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </div>
 
 
-                <div id="pgn-container" class="col-md-4 mt-3" style="border-radius: 15px; "> <!-- For the PGN moves -->
+                <div id="pgn-container" class="col-md-4 mt-3" > <!-- For the PGN moves -->
                     <p>Movimientos</p>
-                    <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto;">
+                    <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto; border-radius: 15px;">
                         <div class="d-flex justify-content-between">
                             <p class="text-center">Blancas</p>
                             <p class="text-center">Negras</p>
