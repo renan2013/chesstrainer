@@ -55,7 +55,7 @@ $grupo = $result_grupo->fetch_assoc();
 $stmt_grupo->close();
 
 // 2. Obtener miembros del grupo
-$stmt_miembros = $conn->prepare("SELECT u.id_usuarios, u.nombre_usuario FROM grupo_miembros gm JOIN usuarios u ON gm.id_usuario = u.id_usuarios WHERE gm.id_grupo = ? ORDER BY u.nombre_usuario");
+$stmt_miembros = $conn->prepare("SELECT u.id_usuarios, u.nombre_completo FROM grupo_miembros gm JOIN usuarios u ON gm.id_usuario = u.id_usuarios WHERE gm.id_grupo = ? ORDER BY u.nombre_completo");
 $stmt_miembros->bind_param("i", $id_grupo);
 $stmt_miembros->execute();
 $result_miembros = $stmt_miembros->get_result();
@@ -66,7 +66,7 @@ while ($row = $result_miembros->fetch_assoc()) {
 $stmt_miembros->close();
 
 // 3. Obtener usuarios que NO están en el grupo para el dropdown
-$stmt_no_miembros = $conn->prepare("SELECT id_usuarios, nombre_usuario FROM usuarios WHERE rol = 'usuario' AND id_usuarios NOT IN (SELECT id_usuario FROM grupo_miembros WHERE id_grupo = ?) ORDER BY nombre_usuario");
+$stmt_no_miembros = $conn->prepare("SELECT id_usuarios, nombre_completo FROM usuarios WHERE rol = 'usuario' AND id_usuarios NOT IN (SELECT id_usuario FROM grupo_miembros WHERE id_grupo = ?) ORDER BY nombre_completo");
 $stmt_no_miembros->bind_param("i", $id_grupo);
 $stmt_no_miembros->execute();
 $result_no_miembros = $stmt_no_miembros->get_result();
@@ -142,7 +142,7 @@ $conn->close();
                 <ul class="list-group mb-3">
                     <?php foreach ($miembros as $miembro): ?>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <?php echo htmlspecialchars($miembro['nombre_usuario']); ?>
+                            <?php echo htmlspecialchars($miembro['nombre_completo']); ?>
                             <a href="#" class="btn btn-danger btn-sm">Quitar</a> <!-- Funcionalidad futura -->
                         </li>
                     <?php endforeach; ?>
@@ -161,7 +161,7 @@ $conn->close();
                                 <option value="">-- Estudiantes disponibles --</option>
                                 <?php foreach ($no_miembros as $estudiante): ?>
                                     <option value="<?php echo $estudiante['id_usuarios']; ?>">
-                                        <?php echo htmlspecialchars($estudiante['nombre_usuario']); ?>
+                                        <?php echo htmlspecialchars($estudiante['nombre_completo']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
