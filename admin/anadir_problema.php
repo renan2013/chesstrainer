@@ -1,4 +1,5 @@
 <?php 
+ob_start();
 $page_title = "Añadir Diagrama";
 require_once 'includes/header.php';
 
@@ -752,3 +753,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
+<?php ob_end_flush(); ?>
