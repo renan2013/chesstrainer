@@ -70,7 +70,7 @@ $conn->close();
                         <a href="anadir_problema.php" class="btn btn-primary btn-lg">Crear Diagrama</a>
                     </div>
                     <div class="col-md-4 text-center">
-                        <img src="../img/" alt="Chessboard" style="width: 156px; height: 156px;">
+                        <img src="../img/chessboard.svg" alt="Chessboard" style="width: 156px; height: 156px;">
                     </div>
                 </div>
             </div>
