@@ -278,7 +278,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <textarea name="desarrollo" id="desarrollo" class="form-control"></textarea>
                     </div>
 
-                    <div class="col-md-12">
+                    <div class="d-grid">
                         <button type="submit" class="btn btn-primary">Añadir Diagrama - Estudio</button>
                     </div>
 
