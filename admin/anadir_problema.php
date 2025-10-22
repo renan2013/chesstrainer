@@ -1,10 +1,8 @@
-<?php
-ob_start();
-session_start();
-require '../db_connect.php';
+<?php 
+$page_title = "Añadir Diagrama";
+require_once 'includes/header.php';
 
-// Verificar si el usuario tiene el rol adecuado
-if (!isset($_SESSION['id_usuarios']) || !in_array($_SESSION['rol'], ['administrador', 'creador_contenido'])) {
+if (!in_array($_SESSION['rol'], ['administrador', 'creador_contenido'])) {
     header("location: index.php");
     exit;
 }
@@ -12,65 +10,106 @@ if (!isset($_SESSION['id_usuarios']) || !in_array($_SESSION['rol'], ['administra
 $mensaje = '';
 $error = '';
 
-// Obtener todas las categorías para el selector
-$categorias = [];
-$sql_categorias = "SELECT id_categorias, nombre_categoria FROM categorias ORDER BY nombre_categoria ASC";
-$result_categorias = $conn->query($sql_categorias);
-if ($result_categorias && $result_categorias->num_rows > 0) {
-    while($row = $result_categorias->fetch_assoc()) {
-        $categorias[] = $row;
-    }
-}
+// Obtener publicaciones y categorías para los selectores
+$publicaciones = [];
+$categorias_por_publicacion = [];
 
-// Procesar el formulario para añadir nuevo problema
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST["add_problema"])) {
-    $id_categoria = $_POST["id_categoria"];
-    $fen = trim($_POST["fen"]);
-    $solucion = trim($_POST["solucion"]);
-    $dificultad = $_POST["dificultad"];
-    $puntos = $_POST["puntos"];
-    $movimientos_alternativos = trim($_POST["movimientos_alternativos"]);
-
-    if (empty($id_categoria) || empty($fen) || empty($solucion)) {
-        $error = "La categoría, FEN y solución no pueden estar vacíos.";
-    } else {
-        $sql = "INSERT INTO problemas (id_categoria, fen, solucion, dificultad, puntos, movimientos_alternativos) VALUES (?, ?, ?, ?, ?, ?)";
-        if ($stmt = $conn->prepare($sql)) {
-            $stmt->bind_param("issiis", $id_categoria, $fen, $solucion, $dificultad, $puntos, $movimientos_alternativos);
-            if ($stmt->execute()) {
-                header("Location: anadir_problema.php?success=1");
-                exit;
-            } else {
-                $error = "Error al añadir el problema: " . $stmt->error;
+$sql_publicaciones = "SELECT id_publicacion, titulo, tipo FROM publicacion ORDER BY titulo"; // Añadido tipo
+$result_publicaciones = $conn->query($sql_publicaciones);
+if ($result_publicaciones->num_rows > 0) {
+    while($row = $result_publicaciones->fetch_assoc()) {
+        $publicaciones[] = $row;
+        $sql_categorias = "SELECT id_categorias, nombre_categoria FROM categorias WHERE id_publicacion = ? ORDER BY nombre_categoria";
+        if ($stmt_cat = $conn->prepare($sql_categorias)) {
+            $stmt_cat->bind_param("i", $row['id_publicacion']);
+            $stmt_cat->execute();
+            $result_cat = $stmt_cat->get_result();
+            while($cat_row = $result_cat->fetch_assoc()) {
+                $categorias_por_publicacion[$row['id_publicacion']][] = $cat_row;
             }
-            $stmt->close();
+            $stmt_cat->close();
         }
     }
 }
 
-// Obtener todos los problemas para mostrarlos
-$problemas = [];
-$sql_problemas = "SELECT p.id_problema, c.nombre_categoria, p.fen, p.solucion, p.dificultad, p.puntos, p.movimientos_alternativos 
-                  FROM problemas p JOIN categorias c ON p.id_categoria = c.id_categorias 
-                  ORDER BY c.nombre_categoria ASC, p.id_problema DESC";
-$result_problemas = $conn->query($sql_problemas);
-
-if ($result_problemas && $result_problemas->num_rows > 0) {
-    while($row = $result_problemas->fetch_assoc()) {
-        $problemas[] = $row;
+$todas_las_categorias = [];
+$sql_todas_cat = "SELECT id_categorias, nombre_categoria FROM categorias ORDER BY nombre_categoria ASC";
+$result_todas_cat = $conn->query($sql_todas_cat);
+if ($result_todas_cat) {
+    while($row_cat = $result_todas_cat->fetch_assoc()) {
+        $todas_las_categorias[] = $row_cat;
     }
 }
 
-$conn->close();
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $fen = trim($_POST["fen"]);
+    $solucion = trim($_POST["solucion"]);
+    $dificultad = $_POST["dificultad"];
+    $juega = $_POST["juega"];
+
+    // Traducir 'w' y 'b' a los valores esperados por la base de datos
+    if ($juega === 'w') {
+        $juega = 'blancas';
+    } elseif ($juega === 'b') {
+        $juega = 'negras';
+    }
+    $tipo_problema = $_POST["tipo_problema"];
+    $desarrollo = trim($_POST["desarrollo"]);
+    $id_categorias = $_POST["id_categorias"];
+    $variante_nombre = $_POST["variante_nombre"] ?? null;
+    $orden = $_POST["orden"] ?? 0;
+    $pgn = trim($_POST["pgn"]);
+
+    // Si se proporciona un PGN, intenta extraer el FEN de él.
+    if (!empty($pgn)) {
+        preg_match('/\[FEN "([^"]+)"\]/', $pgn, $matches);
+        if (isset($matches[1])) {
+            $fen = $matches[1];
+        }
+    }
+
+    if (empty($fen) || (empty($solucion) && empty($pgn)) || empty($dificultad) || empty($juega) || empty($tipo_problema) || empty($id_categorias)) {
+        $error = "Por favor, completa todos los campos obligatorios.";
+    } else {
+        // Heredar el modo desde la publicación padre
+        $modo_heredado = '';
+        $sql_get_tipo = "SELECT p.tipo FROM publicacion p JOIN categorias c ON p.id_publicacion = c.id_publicacion WHERE c.id_categorias = ?";
+        if ($stmt_tipo = $conn->prepare($sql_get_tipo)) {
+            $stmt_tipo->bind_param("i", $id_categorias);
+            $stmt_tipo->execute();
+            $result_tipo = $stmt_tipo->get_result();
+            if ($result_tipo->num_rows == 1) {
+                $modo_heredado = $result_tipo->fetch_assoc()['tipo'];
+            }
+            $stmt_tipo->close();
+        }
+
+        if (empty($modo_heredado)) {
+            $error = "No se pudo determinar el modo (Estudio/Problema) desde la publicación padre.";
+        } else {
+            $sql = "INSERT INTO problemas (id_categorias, fen, solucion, dificultad, juega, tipo_problema, desarrollo, creado_por_id_usuario, modo, variante_nombre, orden, pgn) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            if ($stmt = $conn->prepare($sql)) {
+                $creado_por_id_usuario = $_SESSION['id_usuarios'];
+                // El modo ahora es $modo_heredado
+                $stmt->bind_param("issssssissis", $id_categorias, $fen, $solucion, $dificultad, $juega, $tipo_problema, $desarrollo, $creado_por_id_usuario, $modo_heredado, $variante_nombre, $orden, $pgn);
+                if ($stmt->execute()) {
+                    header("Location: anadir_problema.php?success=1");
+                    exit;
+                } else {
+                    $error = "Error al añadir el problema: " . $stmt->error;
+                }
+                $stmt->close();
+            }
+        }
+    }
+}
 ?>
 
-<?php include 'includes/header.php'; ?>
 
-<div class="admin-container">
-    <?php require_once 'includes/sidebar.php'; ?>
-    <main class="main-content">
 
-        <h3 class="mb-4">Añadir y Gestionar Problemas</h3>
+    <main class="main-content" style="background-color: #f0f0f0;">
+
+        <h3>Añadir Nuevo Diagrama</h3>
         <link rel="stylesheet" href="../css/chessboard-1.0.0.min.css">
         <style>
             #board {
@@ -82,96 +121,326 @@ $conn->close();
                 overflow-x: auto; /* Allow horizontal scrolling if needed */
                 justify-content: center; /* Center the pieces */
             }
-            .form-control, .form-select {
-                background-color: #ffffff;
-            }
-        </style>
-
-        <?php if(!empty($mensaje)): ?>
-            <div class="alert alert-success" role="alert"><?php echo $mensaje; ?></div>
+                            .form-control, .form-select {
+                                background-color: #ffffff;
+                            }
+                            .pgn-move-pair:nth-child(odd) {
+                                background-color: #f8f8f8; /* Un gris muy claro */
+                            }
+                                                                            .pgn-move-pair:nth-child(even) {
+                                                                                background-color: #ffffff; /* Blanco */
+                                                                            }
+                                                                            .header-black-moves {
+                                                                                font-weight: bold;
+                                                                            }
+                                                                        </style>        <?php if(isset($_GET['success']) && $_GET['success'] == 1): ?>
+            <div class="alert alert-success" role="alert">Diagrama añadido exitosamente.</div>
         <?php endif; ?>
 
         <?php if(!empty($error)): ?>
             <div class="alert alert-danger" role="alert"><?php echo $error; ?></div>
         <?php endif; ?>
 
-        <h4 class="mb-3">Añadir Nuevo Problema</h4>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-            <div class="mb-3">
-                <label for="id_categoria" class="form-label">Categoría</label>
-                <select name="id_categoria" id="id_categoria" class="form-select" required>
-                    <option value="">Selecciona una categoría</option>
-                    <?php foreach ($categorias as $cat): ?>
-                        <option value="<?php echo $cat['id_categorias']; ?>"><?php echo htmlspecialchars($cat['nombre_categoria']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label for="fen" class="form-label">FEN (Notación Forsyth-Edwards)</label>
-                <input type="text" name="fen" id="fen" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="solucion" class="form-label">Solución (Movimiento en notación algebraica)</label>
-                <input type="text" name="solucion" id="solucion" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label for="movimientos_alternativos" class="form-label">Movimientos Alternativos (separados por |)</label>
-                <input type="text" name="movimientos_alternativos" id="movimientos_alternativos" class="form-control" placeholder="Ej: Cgxf6+|Cexf6+">
-            </div>
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="dificultad" class="form-label">Dificultad (1-5)</label>
-                    <input type="number" name="dificultad" id="dificultad" class="form-control" min="1" max="5" value="3" required>
+            <div class="row mb-2">
+                <div class="col-md-4">
+                    <label for="id_publicacion" class="form-label">Publicación (Define el Modo)</label>
+                    <select id="id_publicacion" name="id_publicacion" class="form-select" required>
+                        <option value="">Selecciona una publicación</option>
+                        <?php foreach ($publicaciones as $pub): ?>
+                            <option value="<?php echo $pub['id_publicacion']; ?>" data-tipo="<?php echo $pub['tipo']; ?>">
+                                <?php echo htmlspecialchars($pub['titulo']); ?> (<?php echo htmlspecialchars($pub['tipo']); ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label for="puntos" class="form-label">Puntos</label>
-                    <input type="number" name="puntos" id="puntos" class="form-control" min="1" value="100" required>
+                <div class="col-md-4">
+                    <label for="id_categorias" class="form-label">Categoría</label>
+                    <select id="id_categorias" name="id_categorias" class="form-select" required>
+                        <option value="">Selecciona una categoría</option>
+                    </select>
+                </div>
+                <div class="col-md-4" id="variante_nombre_wrapper" style="display: none;">
+                    <label for="variante_nombre" class="form-label">Nombre de la Variante (para modo Estudio)</label>
+                    <input type="text" name="variante_nombre" id="variante_nombre" class="form-control">
                 </div>
             </div>
-            <button type="submit" name="add_problema" class="btn btn-primary">Añadir Problema</button>
+
+          
+
+            <div class="row align-items-start">
+                <div class="col-md-4"> <!-- For the board -->
+                    <div style="width: 70%; max-width: 100%; margin: 0 auto;">
+                        <div id="board"></div>
+                    </div>
+                    <div class="text-center mt-3"> <!-- New div for buttons below board -->
+                        <button type="button" id="startBtn" class="btn btn-secondary btn-sm">Posición Inicial</button>
+                        <button type="button" id="clearBtn" class="btn btn-secondary btn-sm">Limpiar Tablero</button>
+                        <div class="mt-2"> <!-- Add a small margin-top for separation -->
+                            <button type="button" id="toggleTurnBtn" class="btn btn-info btn-sm">Cambiar Turno</button>
+                        </div>
+                        <div class="mt-2"> <!-- Add a small margin-top for separation -->
+                            <button type="button" id="pgn-first" class="btn btn-primary btn-sm"><<</button>
+                            <button type="button" id="pgn-prev" class="btn btn-primary btn-sm"><</button>
+                            <button type="button" id="pgn-next" class="btn btn-primary btn-sm">></button>
+                            <button type="button" id="pgn-last" class="btn btn-primary btn-sm">>></button>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div id="pgn-container" class="col-md-4 mt-3" > <!-- For the PGN moves -->
+                    <p>Movimientos</p>
+                    <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto; border-radius: 10px;">
+                        <div class="d-flex justify-content-between">
+                            <p class="text-center">Blancas</p>
+                            <p class="text-center">Negras</p>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <div class="col-md-4"> <!-- Solucion and PGN inputs -->
+                 
+                
+                <div class="col-md-12">
+                    <label for="fen" class="form-label">FEN</label>
+                    <input type="text" name="fen" id="fen" class="form-control" required>
+                </div>
+           
+                <div class="col-md-12">
+                        <label for="solucion" class="form-label">Solución</label>
+                        <textarea name="solucion" id="solucion" class="form-control" required></textarea>
+                        <div id="solucion-feedback" class="form-text"></div>
+                </div>
+
+                <div class="col-md-12">
+                        <label for="pgn" class="form-label">PGN</label>
+                        <textarea name="pgn" id="pgn" class="form-control"></textarea>
+                </div>
+
+                <div class="col-md-12">
+                        <label for="dificultad" class="form-label">Dificultad</label>
+                        <select name="dificultad" id="dificultad" class="form-select" required>
+                            <option value="">Selecciona</option>
+                            <option value="Fácil">Fácil</option>
+                            <option value="Intermedio">Intermedio</option>
+                            <option value="Difícil">Difícil</option>
+                            <option value="Experto">Experto</option>
+                        </select>
+                </div>
+
+                    <div class="row">
+                    <div class="col-md-8">
+                        <label class="form-label">Juega (cambiar turno)</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="juega_radio" id="juega_blancas" value="w" checked disabled="true">
+                                <label class="form-check-label" for="juega_blancas">Blancas</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="juega_radio" id="juega_negras" value="b" disabled="true">
+                                <label class="form-check-label" for="juega_negras">Negras</label>
+                            </div>
+                            <input type="hidden" name="juega" id="juega_hidden" value="w">
+                        </div>
+                    </div>
+
+                    <div class="col-md-4" id="orden_wrapper">
+                    <label for="orden" class="form-label">Orden</label>
+                    <input type="number" name="orden" id="orden" class="form-control" value="0">
+                    </div>
+                    </div>
+
+
+
+
+                    <div class="col-md-12">
+                        <label for="tipo_problema" class="form-label">Tipo de Problema</label>
+                        <select name="tipo_problema" id="tipo_problema" class="form-select" required>
+                            <option value="">Selecciona</option>
+                            <option value="Mate en 1">Mate en 1</option>
+                            <option value="Mate en 2">Mate en 2</option>
+                            <option value="Mate en 3">Mate en 3</option>
+                            
+                            <option value="Ganan Blancas">Ganan Blancas</option>
+                            <option value="Ganan Negras">Ganan Negras</option>
+                            <option value="Ventaja Blanca">Ventaja Blanca</option>
+                            <option value="Ventaja Negra">Ventaja Negra</option>
+                            <option value="Tablas">Tablas</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            
+
+            
+
+            
+            <div class="mb-3">
+                <label for="desarrollo" class="form-label">Desarrollo</label>
+                <textarea name="desarrollo" id="desarrollo" class="form-control"></textarea>
+            </div>
+            
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">Añadir Diagrama</button>
+            </div>
+        </form>
+        <hr class="my-5">
+
+        <h2 class="mb-4">Problemas Existentes</h2>
+
+        <!-- Formulario de Búsqueda -->
+        <form action="" method="GET" class="mb-4">
+            <div class="input-group">
+                <input type="text" name="search" class="form-control" placeholder="Buscar por ID, FEN, categoría o modo..." value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                <button class="btn btn-primary" type="submit">Buscar</button>
+            </div>
         </form>
 
-        <div class="problemas-list mt-5">
-            <h4 class="mb-3">Problemas Existentes</h4>
-            <?php if (empty($problemas)): ?>
-                <p class="text-muted">No hay problemas registrados aún.</p>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-light">
+        <?php
+        $problemas_por_pagina = 20;
+        $pagina_actual = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        if ($pagina_actual < 1) {
+            $pagina_actual = 1;
+        }
+        $offset = ($pagina_actual - 1) * $problemas_por_pagina;
+
+        $search_term = '';
+        if (isset($_GET['search'])) {
+            $search_term = $conn->real_escape_string($_GET['search']);
+        }
+
+        // --- Construcción de la consulta con filtros y control de rol ---
+        $base_sql_count = "SELECT COUNT(*) as total FROM problemas p JOIN categorias c ON p.id_categorias = c.id_categorias";
+        $base_sql_problemas = "SELECT p.id_problemas, p.fen, p.modo, p.dificultad, c.nombre_categoria 
+                               FROM problemas p 
+                               JOIN categorias c ON p.id_categorias = c.id_categorias";
+        
+        $where_conditions = [];
+        $params = [];
+        $types = '';
+
+        // Filtro por término de búsqueda
+        if (!empty($search_term)) {
+            $search_param = "%" . $search_term . "%";
+            $numeric_search_term = is_numeric($search_term) ? intval($search_term) : null;
+
+            $search_parts = ["p.fen LIKE ?", "c.nombre_categoria LIKE ?", "p.modo LIKE ?"];
+            $params = array_merge($params, [$search_param, $search_param, $search_param]);
+            $types .= 'sss';
+            
+            if ($numeric_search_term !== null) {
+                $search_parts[] = "p.id_problemas = ?";
+                $params[] = $numeric_search_term;
+                $types .= 'i';
+            }
+            $where_conditions[] = "(" . implode(" OR ", $search_parts) . ")";
+        }
+
+        // Filtro por rol de usuario
+        if (isset($_SESSION['rol']) && $_SESSION['rol'] === 'creador_contenido') {
+            $where_conditions[] = "p.creado_por_id_usuario = ?";
+            $params[] = $_SESSION['id_usuarios'];
+            $types .= 'i';
+        }
+
+        $where_clause = "";
+        if (!empty($where_conditions)) {
+            $where_clause = " WHERE " . implode(" AND ", $where_conditions);
+        }
+
+        // Ejecutar consulta de conteo
+        $sql_count = $base_sql_count . $where_clause;
+        $stmt_count = $conn->prepare($sql_count);
+        if (!empty($params)) {
+            $stmt_count->bind_param($types, ...$params);
+        }
+        $stmt_count->execute();
+        $total_problemas = $stmt_count->get_result()->fetch_assoc()['total'];
+        $total_paginas = ceil($total_problemas / $problemas_por_pagina);
+        $stmt_count->close();
+
+        // Ejecutar consulta de problemas para la página actual
+        $sql_problemas = $base_sql_problemas . $where_clause . " ORDER BY p.id_problemas DESC LIMIT ? OFFSET ?";
+        
+        // Limpiar tipos y parámetros para la segunda consulta
+        $problemas_params = $params;
+        $problemas_types = $types;
+        $problemas_types .= 'ii';
+        $problemas_params[] = $problemas_por_pagina;
+        $problemas_params[] = $offset;
+
+        $stmt_problemas = $conn->prepare($sql_problemas);
+        if (!empty($problemas_params)) {
+            $stmt_problemas->bind_param($problemas_types, ...$problemas_params);
+        }
+        $stmt_problemas->execute();
+        $result_problemas = $stmt_problemas->get_result();
+        ?>
+
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Categoría</th>
+                        <th>FEN</th>
+                        <th>Dificultad</th>
+                        <th>Modo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if ($result_problemas && $result_problemas->num_rows > 0): ?>
+                        <?php while($problema = $result_problemas->fetch_assoc()): ?>
                             <tr>
-                                <th>ID</th>
-                                <th>Categoría</th>
-                                <th>FEN</th>
-                                <th>Solución</th>
-                                <th>Dificultad</th>
-                                <th>Puntos</th>
-                                <th>Acciones</th>
+                                <td><?php echo $problema['id_problemas']; ?></td>
+                                <td><?php echo htmlspecialchars($problema['nombre_categoria']); ?></td>
+                                <td><small><?php echo htmlspecialchars($problema['fen']); ?></small></td>
+                                <td><?php echo htmlspecialchars(ucfirst($problema['dificultad'])); ?></td>
+                                <td><?php echo htmlspecialchars(ucfirst($problema['modo'])); ?></td>
+                                <td>
+                                    <a href="editar_problema.php?id=<?php echo $problema['id_problemas']; ?>" class="btn btn-sm btn-info">Editar</a>
+                                    <a href="eliminar_problema.php?id=<?php echo $problema['id_problemas']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de que quieres eliminar este problema?');">Eliminar</a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($problemas as $problema): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($problema['id_problema']); ?></td>
-                                    <td><?php echo htmlspecialchars($problema['nombre_categoria']); ?></td>
-                                    <td><?php echo htmlspecialchars($problema['fen']); ?></td>
-                                    <td><?php echo htmlspecialchars($problema['solucion']); ?></td>
-                                    <td><?php echo htmlspecialchars($problema['dificultad']); ?></td>
-                                    <td><?php echo htmlspecialchars($problema['puntos']); ?></td>
-                                    <td>
-                                        <a href="editar_problema.php?id=<?php echo $problema['id_problema']; ?>" class="btn btn-warning btn-sm me-1">Editar</a>
-                                        <a href="eliminar_problema.php?id=<?php echo $problema['id_problema']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que quieres eliminar este problema?');">Eliminar</a>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php endif; ?>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="5" class="text-center">No hay problemas para mostrar.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
 
+        <!-- Paginación -->
+        <nav aria-label="Paginación de problemas">
+            <ul class="pagination justify-content-center">
+                <?php if ($total_paginas > 1): ?>
+                    <!-- Botón Anterior -->
+                    <li class="page-item <?php echo ($pagina_actual <= 1) ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?page=<?php echo $pagina_actual - 1; ?>&search=<?php echo urlencode($search_term); ?>">Anterior</a>
+                    </li>
+
+                    <?php for ($i = 1; $i <= $total_paginas; $i++): ?>
+                        <li class="page-item <?php echo ($i == $pagina_actual) ? 'active' : ''; ?>">
+                            <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search_term); ?>"><?php echo $i; ?></a>
+                        </li>
+                    <?php endfor; ?>
+
+                    <!-- Botón Siguiente -->
+                    <li class="page-item <?php echo ($pagina_actual >= $total_paginas) ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?page=<?php echo $pagina_actual + 1; ?>&search=<?php echo urlencode($search_term); ?>">Siguiente</a>
+                    </li>
+                <?php endif; ?>
+            </ul>
+        </nav>
+
     </main>
-</div>
 
 <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 <script src="../js/chessboard-1.0.0.min.js"></script>
@@ -483,4 +752,3 @@ $conn->close();
 </script>
 
 <?php require_once 'includes/footer.php'; ?>
-<?php ob_end_flush(); ?>
