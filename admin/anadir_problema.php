@@ -272,6 +272,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <option value="Tablas">Tablas</option>
                         </select>
                     </div>
+
+                    <div class="col-md-12">
+                        <label for="desarrollo" class="form-label">Desarrollo</label>
+                        <textarea name="desarrollo" id="desarrollo" class="form-control"></textarea>
+                    </div>
+
+
                 </div>
             </div>
 
@@ -280,10 +287,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             
 
             
-            <div class="mb-3">
-                <label for="desarrollo" class="form-label">Desarrollo</label>
-                <textarea name="desarrollo" id="desarrollo" class="form-control"></textarea>
-            </div>
+            
             
             <div class="d-grid">
                 <button type="submit" class="btn btn-primary">Añadir Diagrama - Estudio</button>
