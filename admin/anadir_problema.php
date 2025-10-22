@@ -285,7 +285,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             
             <div class="d-grid">
-                <button type="submit" class="btn btn-primary">Añadir Diagrama</button>
+                <button type="submit" class="btn btn-primary">Añadir Diagrama - Estudio</button>
             </div>
         </form>
         <hr class="my-5">
