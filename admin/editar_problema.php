@@ -232,7 +232,7 @@ if ($result_publicaciones->num_rows > 0) {
                     </div>
 
                     <div class="mb-3">
-                        <label for="dificultad" class="form-label">Dificultad</label>
+                        <label for="dificultad" class="form-label">Dificultad.</label>
                         <select name="dificultad" id="dificultad" class="form-select" required>
                             <option value="">Selecciona</option>
                             <option value="Fácil" <?php echo (($problema['dificultad'] ?? '') == 'Fácil') ? 'selected' : ''; ?>>Fácil</option>
