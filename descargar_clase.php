@@ -42,6 +42,9 @@ function generateBoardImage($fen, $problem_index, $turn)
 {
     $square_size = 50; // 50x50 pixels per square
     $board_size = 8 * $square_size;
+    $text_height = 20; // Height for the text area above the board
+    $total_image_height = $board_size + $text_height;
+
     $path_piezas = __DIR__ . '/img/chesspieces/wikipedia/';
     $temp_dir = __DIR__ . '/admin/uploads/temp_diagrams/';
 
@@ -50,15 +53,28 @@ function generateBoardImage($fen, $problem_index, $turn)
         mkdir($temp_dir, 0775, true);
     }
 
-    // Create blank board canvas
-    $board_img = imagecreatetruecolor($board_size, $board_size);
+    // Create blank board canvas with extra space for text
+    $board_img = imagecreatetruecolor($board_size, $total_image_height);
     $light_color = imagecolorallocate($board_img, 240, 217, 181); // Light square color
     $dark_color = imagecolorallocate($board_img, 181, 136, 99);  // Dark square color
+    $text_bg_color = imagecolorallocate($board_img, 50, 50, 50); // Dark background for text
+    $text_color = imagecolorallocate($board_img, 255, 255, 255); // White text
 
+    // Fill the text background area
+    imagefilledrectangle($board_img, 0, 0, $board_size, $text_height, $text_bg_color);
+
+    // Add text (Problem number and turn) at the top
+    $text_to_display = 'Diag. ' . ($problem_index + 1) . ' - Juegan: ' . ucfirst($turn);
+    $font_size = 3; // GD font size (1-5)
+    $text_width = imagefontwidth($font_size) * strlen($text_to_display);
+    $text_x = ($board_size - $text_width) / 2; // Center the text
+    imagestring($board_img, $font_size, (int)$text_x, 3, $text_to_display, $text_color);
+
+    // Draw board squares below the text area
     for ($row = 0; $row < 8; $row++) {
         for ($col = 0; $col < 8; $col++) {
             $color = (($row + $col) % 2 == 0) ? $light_color : $dark_color;
-            imagefilledrectangle($board_img, $col * $square_size, $row * $square_size, ($col + 1) * $square_size, ($row + 1) * $square_size, $color);
+            imagefilledrectangle($board_img, $col * $square_size, $row * $square_size + $text_height, ($col + 1) * $square_size, ($row + 1) * $square_size + $text_height, $color);
         }
     }
 
@@ -81,19 +97,14 @@ function generateBoardImage($fen, $problem_index, $turn)
 
                 if (file_exists($piece_file)) {
                     $piece_img = imagecreatefrompng($piece_file);
-                    imagecopyresampled($board_img, $piece_img, $col * $square_size, $row * $square_size, 0, 0, $square_size, $square_size, imagesx($piece_img), imagesy($piece_img));
+                    // Resize piece image to square_size if necessary (assuming original is larger)
+                    imagecopyresampled($board_img, $piece_img, $col * $square_size, $row * $square_size + $text_height, 0, 0, $square_size, $square_size, imagesx($piece_img), imagesy($piece_img));
                     imagedestroy($piece_img);
                 }
                 $col++;
             }
         }
     }
-    
-    // Add text (Problem number and turn)
-    $text_color = imagecolorallocate($board_img, 255, 255, 255);
-    $bg_color = imagecolorallocatealpha($board_img, 0, 0, 0, 50);
-    imagefilledrectangle($board_img, 0, $board_size - 20, $board_size, $board_size, $bg_color);
-    imagestring($board_img, 5, 5, $board_size - 18, 'Diag: ' . ($problem_index + 1) . ' - Juegan: ' . ucfirst($turn), $text_color);
 
     // Save final image to a temporary file
     $output_file = $temp_dir . uniqid('board_', true) . '.png';
@@ -107,14 +118,24 @@ function generateBoardImage($fen, $problem_index, $turn)
 // =================================================================
 class PDF extends FPDF
 {
+    // Page header
     function Header()
     {
         global $category_name;
+        // Logo (assuming it's in img/chess_trainer_logo.png)
+        $logo_path = __DIR__ . '/img/chess_trainer_logo.png';
+        if (file_exists($logo_path)) {
+            $this->Image($logo_path, 10, 8, 30); // X, Y, Width
+        }
+        
+        // Title
         $this->SetFont('Arial', 'B', 15);
+        $this->SetY(20); // Position below logo
         $this->Cell(0, 10, 'Clase de Ajedrez - ' . utf8_decode($category_name), 0, 1, 'C');
         $this->Ln(5);
     }
 
+    // Page footer
     function Footer()
     {
         $this->SetY(-15);
@@ -127,34 +148,52 @@ $pdf = new PDF('P', 'mm', 'A4');
 $pdf->AliasNbPages();
 $pdf->AddPage();
 
-$margin = 10;
-$image_size = 60; // 60mm x 60mm
-$padding = 5;
+// Layout calculations for 12 diagrams (3 columns, 4 rows)
+$margin = 10; // mm
+$usable_width = 210 - (2 * $margin); // A4 width - left/right margin
+$usable_height = 297 - 30 - 15; // A4 height - header space - footer space (approx)
 
-$x_positions = [$margin, $margin + $image_size + $padding, $margin + 2 * ($image_size + $padding)];
-$y_start = $pdf->GetY();
+$num_cols = 3;
+$num_rows = 4;
+$diagrams_per_page = $num_cols * $num_rows;
+
+$padding_h = 5; // Horizontal padding between images
+$padding_v = 5; // Vertical padding between images
+
+$image_width_mm = ($usable_width - (($num_cols - 1) * $padding_h)) / $num_cols;
+$image_height_mm = ($usable_height - (($num_rows - 1) * $padding_v)) / $num_rows;
+
+// Ensure image_width_mm and image_height_mm are roughly equal for square diagrams
+$image_size_mm = min($image_width_mm, $image_height_mm); // Use the smaller dimension to maintain aspect ratio
+
+$x_positions = [];
+for ($i = 0; $i < $num_cols; $i++) {
+    $x_positions[] = $margin + ($i * ($image_size_mm + $padding_h));
+}
+
+$y_start_content = 30; // Start content below header/logo
 
 $problem_count = 0;
 $temp_files = [];
 
 foreach ($problems as $index => $problem) {
-    if ($problem_count > 0 && $problem_count % 9 == 0) {
+    if ($problem_count > 0 && $problem_count % $diagrams_per_page == 0) {
         $pdf->AddPage();
     }
 
-    $grid_pos = $problem_count % 9;
-    $col = $grid_pos % 3;
-    $row = floor($grid_pos / 3);
+    $grid_pos = $problem_count % $diagrams_per_page;
+    $col = $grid_pos % $num_cols;
+    $row = floor($grid_pos / $num_cols);
 
     $x = $x_positions[$col];
-    $y = $y_start + ($row * ($image_size + $padding + 5));
+    $y = $y_start_content + ($row * ($image_size_mm + $padding_v));
 
     // Generate the board image for the current problem
     $image_path = generateBoardImage($problem['fen'], $index, $problem['juega']);
     $temp_files[] = $image_path;
 
     // Place the image in the PDF
-    $pdf->Image($image_path, $x, $y, $image_size, $image_size, 'PNG');
+    $pdf->Image($image_path, $x, $y, $image_size_mm, $image_size_mm, 'PNG');
 
     $problem_count++;
 }
