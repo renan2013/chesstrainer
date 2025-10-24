@@ -1,8 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 session_start();
 require_once 'db_connect.php';
 
@@ -47,20 +43,6 @@ $conn->close();
 if (empty($problems)) {
     die("No hay problemas en esta categoría para exportar.");
 }
-
-// --- DEBUGGING: Check the FEN string and URL ---
-$first_problem = $problems[0];
-$raw_fen = $first_problem['fen'];
-$fen_encoded = urlencode($raw_fen);
-$image_url = "https://chessboardimage.com/{$fen_encoded}.png";
-
-echo "<h1>Información de Depuración</h1>";
-echo "<p><strong>FEN Crudo (de la BD):</strong> " . htmlspecialchars($raw_fen) . "</p>";
-echo "<p><strong>FEN Codificado para URL:</strong> " . htmlspecialchars($fen_encoded) . "</p>";
-echo "<p><strong>URL de Imagen Generada:</strong> <a href='{$image_url}' target='_blank'>{$image_url}</a></p>";
-echo "<p><strong>Vista Previa de la Imagen:</strong><br><img src='{$image_url}'></p>";
-die(); // Detener el script aquí para depurar
-
 
 // 4. PDF Generation using FPDF
 require('libreria_ajedrez/fpdf/fpdf.php');
@@ -115,7 +97,7 @@ foreach ($problems as $index => $problem) {
 
     // Generate FEN image URL
     // Note: Using an external service. Make sure this service is reliable.
-    $fen_encoded = urlencode($problem['fen']);
+    $fen_encoded = rawurlencode($problem['fen']);
     $image_url = "https://chessboardimage.com/{$fen_encoded}.png";
 
     // Place the image
