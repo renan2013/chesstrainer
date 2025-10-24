@@ -153,10 +153,14 @@ class PDF extends FPDF
             $this->Image($logo_right_path, $this->GetPageWidth() - 40, 8, 30); // X, Y, Width (adjust X for right alignment)
         }
 
-        // Title
+        // Title: Publication Name - Category Name
         $this->SetFont('Arial', 'B', 15);
         $this->SetY(20); // Position below logos
-        $this->Cell(0, 10, utf8_decode($nombre_publicacion), 0, 1, 'C'); // Use publication name
+        $this->Cell(0, 7, utf8_decode($nombre_publicacion . ' - ' . $category_name), 0, 1, 'C');
+
+        // Date
+        $this->SetFont('Arial', '', 10);
+        $this->Cell(0, 7, utf8_decode(date('d/m/Y')), 0, 1, 'C');
         $this->Ln(5);
     }
 
@@ -165,7 +169,7 @@ class PDF extends FPDF
     {
         $this->SetY(-15);
         $this->SetFont('Arial', 'I', 8);
-        $this->Cell(0, 10, 'Pagina ' . $this->PageNo() . '/{nb}', 0, 0, 'C');
+        $this->Cell(0, 10, utf8_decode('Pagina ' . $this->PageNo() . '/{nb} - developed by renangalvan.net'), 0, 0, 'C');
     }
 }
 
