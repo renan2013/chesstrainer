@@ -149,18 +149,21 @@ class PDF extends FPDF
         
         // Logo Derecho (car_ajedrez.png)
         $logo_right_path = __DIR__ . '/img/car_ajedrez.png'; // Assuming this is the path
+        $right_logo_x = $this->GetPageWidth() - 40; // Adjust X for right alignment
         if (file_exists($logo_right_path)) {
-            $this->Image($logo_right_path, $this->GetPageWidth() - 40, 8, 30); // X, Y, Width (adjust X for right alignment)
+            $this->Image($logo_right_path, $right_logo_x, 8, 30); // X, Y, Width
         }
+
+        // Date (smaller, below right logo)
+        $this->SetFont('Arial', '', 8); // Smaller font
+        $this->SetXY($right_logo_x, 38); // Position below right logo
+        $this->Cell(30, 5, utf8_decode(date('d/m/Y')), 0, 0, 'R'); // Right aligned
 
         // Title: Publication Name - Category Name
         $this->SetFont('Arial', 'B', 15);
-        $this->SetY(20); // Position below logos
+        $this->SetY(20); // Position below logos, adjusted for date
         $this->Cell(0, 7, utf8_decode($nombre_publicacion . ' - ' . $category_name), 0, 1, 'C');
 
-        // Date
-        $this->SetFont('Arial', '', 10);
-        $this->Cell(0, 7, utf8_decode(date('d/m/Y')), 0, 1, 'C');
         $this->Ln(5);
     }
 
@@ -200,7 +203,7 @@ for ($i = 0; $i < $num_cols; $i++) {
     $x_positions[] = $margin + ($i * ($image_size_mm + $padding_h));
 }
 
-$y_start_content = 30; // Start content below header/logo
+$y_start_content = 45; // Adjusted to make space for date below title
 
 $problem_count = 0;
 $temp_files = [];
