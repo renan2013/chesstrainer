@@ -15,7 +15,12 @@ $id_categoria = (int)$_GET['id_categoria'];
 
 // 2. Data Fetching
 // =================================================================
-$stmt_cat = $conn->prepare("SELECT nombre_categoria FROM categorias WHERE id_categorias = ?");
+$category_name = '';
+$id_publicacion = null;
+$nombre_publicacion = '';
+
+// Fetch category name and publication ID
+$stmt_cat = $conn->prepare("SELECT nombre_categoria, id_publicacion FROM categorias WHERE id_categorias = ?");
 $stmt_cat->bind_param("i", $id_categoria);
 $stmt_cat->execute();
 $result_cat = $stmt_cat->get_result();
@@ -23,7 +28,20 @@ if (!($row_cat = $result_cat->fetch_assoc())) {
     die("Categoría no encontrada.");
 }
 $category_name = $row_cat['nombre_categoria'];
+$id_publicacion = $row_cat['id_publicacion'];
 $stmt_cat->close();
+
+// Fetch publication name
+if ($id_publicacion) {
+    $stmt_pub = $conn->prepare("SELECT titulo FROM publicacion WHERE id_publicacion = ?");
+    $stmt_pub->bind_param("i", $id_publicacion);
+    $stmt_pub->execute();
+    $result_pub = $stmt_pub->get_result();
+    if ($row_pub = $result_pub->fetch_assoc()) {
+        $nombre_publicacion = $row_pub['titulo'];
+    }
+    $stmt_pub->close();
+}
 
 $stmt_prob = $conn->prepare("SELECT fen, juega FROM problemas WHERE id_categorias = ? ORDER BY orden ASC, id_problemas ASC");
 $stmt_prob->bind_param("i", $id_categoria);
@@ -121,17 +139,24 @@ class PDF extends FPDF
     // Page header
     function Header()
     {
-        global $category_name;
-        // Logo (assuming it's in img/chess_trainer_logo.png)
-        $logo_path = __DIR__ . '/img/chess_trainer_logo.png';
-        if (file_exists($logo_path)) {
-            $this->Image($logo_path, 10, 8, 30); // X, Y, Width
+        global $category_name, $nombre_publicacion;
+
+        // Logo Izquierdo (Chess Trainer Logo)
+        $logo_left_path = __DIR__ . '/img/chess_trainer_logo.png'; // Assuming this is the path
+        if (file_exists($logo_left_path)) {
+            $this->Image($logo_left_path, 10, 8, 30); // X, Y, Width
         }
         
+        // Logo Derecho (car_ajedrez.png)
+        $logo_right_path = __DIR__ . '/img/car_ajedrez.png'; // Assuming this is the path
+        if (file_exists($logo_right_path)) {
+            $this->Image($logo_right_path, $this->GetPageWidth() - 40, 8, 30); // X, Y, Width (adjust X for right alignment)
+        }
+
         // Title
         $this->SetFont('Arial', 'B', 15);
-        $this->SetY(20); // Position below logo
-        $this->Cell(0, 10, 'Clase de Ajedrez - ' . utf8_decode($category_name), 0, 1, 'C');
+        $this->SetY(20); // Position below logos
+        $this->Cell(0, 10, utf8_decode($nombre_publicacion), 0, 1, 'C'); // Use publication name
         $this->Ln(5);
     }
 
