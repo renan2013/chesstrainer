@@ -1,8 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 session_start();
 require_once 'db_connect.php';
 require('libreria_ajedrez/fpdf/fpdf.php');
@@ -48,6 +44,11 @@ function generateBoardImage($fen, $problem_index, $turn)
     $board_size = 8 * $square_size;
     $path_piezas = __DIR__ . '/img/chesspieces/wikipedia/';
     $temp_dir = __DIR__ . '/admin/uploads/temp_diagrams/';
+
+    // Ensure the temporary directory exists
+    if (!file_exists($temp_dir)) {
+        mkdir($temp_dir, 0775, true);
+    }
 
     // Create blank board canvas
     $board_img = imagecreatetruecolor($board_size, $board_size);
