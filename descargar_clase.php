@@ -198,7 +198,7 @@ for ($i = 0; $i < $num_cols; $i++) {
     $x_positions[] = $margin + ($i * ($image_size_mm + $padding_h));
 }
 
-$y_start_content = 45; // Adjusted to make space for date below title
+$y_start_content = 35; // Adjusted to make space for date below title
 
 $problem_count = 0;
 $temp_files = [];
