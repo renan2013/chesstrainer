@@ -154,14 +154,9 @@ class PDF extends FPDF
             $this->Image($logo_right_path, $right_logo_x, 8, 30); // X, Y, Width
         }
 
-        // Date (smaller, below right logo)
-        $this->SetFont('Arial', '', 8); // Smaller font
-        $this->SetXY($right_logo_x, 38); // Position below right logo
-        $this->Cell(30, 5, utf8_decode(date('d/m/Y')), 0, 0, 'R'); // Right aligned
-
         // Title: Publication Name - Category Name
         $this->SetFont('Arial', 'B', 15);
-        $this->SetY(20); // Position below logos, adjusted for date
+        $this->SetY(20); // Position below logos
         $this->Cell(0, 7, utf8_decode($nombre_publicacion . ' - ' . $category_name), 0, 1, 'C');
 
         $this->Ln(5);
