@@ -164,6 +164,16 @@ $total_problems_in_current_category = count($all_problems);
 
 <?php include 'includes/lichess_menu.php'; ?>
 
+<!-- Botón para Exportar Clase (solo visible para administradores) -->
+<div class="container mb-3 text-center">
+    <?php if (isset($_SESSION['rol']) && $_SESSION['rol'] === 'administrador'): ?>
+        <a href="descargar_clase.php?id_categoria=<?php echo $current_category_id; ?>" class="btn btn-success" target="_blank">
+            <i class="fas fa-file-pdf me-2"></i>Exportar Clase a PDF
+        </a>
+    <?php endif; ?>
+</div>
+
+
 <div class="container-fluid">
 <?php if (!empty($all_problems)): ?>
     <div class="row">
