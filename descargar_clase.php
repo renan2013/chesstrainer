@@ -137,7 +137,7 @@ class PDF extends FPDF
         global $category_name, $nombre_publicacion;
 
         $logo_width = 30; // Reverted to original size
-        $logo_height = 30; // Assuming square logos
+        $logo_height = 10; // New requirement
         $logo_y = 8; // Top position for logos
 
         // Left Logo (Chess Trainer Logo)
@@ -183,7 +183,7 @@ $pdf->AddPage();
 // Layout calculations for 9 diagrams (3 columns, 3 rows)
 $margin = 10; // mm
 $usable_width = 210 - (2 * $margin); // A4 width - left/right margin
-$usable_height = 297 - 40 - 15; // A4 height - header end Y - footer space
+$usable_height = 297 - 20 - 15; // A4 height - header end Y - footer space (20mm is $logo_y + $logo_height + 2)
 
 $num_cols = 3;
 $num_rows = 3;
@@ -202,7 +202,7 @@ for ($i = 0; $i < $num_cols; $i++) {
     $x_positions[] = $margin + ($i * ($image_size_mm + $padding_h));
 }
 
-$y_start_content = 42; // Start content below header/logo
+$y_start_content = 22; // Start content below header/logo (2mm below header end)
 
 $problem_count = 0;
 $temp_files = [];
