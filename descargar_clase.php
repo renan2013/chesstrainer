@@ -179,7 +179,7 @@ $num_cols = 3;
 $num_rows = 3;
 $diagrams_per_page = $num_cols * $num_rows;
 
-$image_size_mm = 55; // Diagram size
+$image_size_mm = 50; // Diagram size
 $solution_space_mm = 14; // Space for student to write solution (adjusted for even rows)
 
 // Calculate padding based on new image size and solution space
