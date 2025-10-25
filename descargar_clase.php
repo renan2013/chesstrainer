@@ -180,7 +180,7 @@ $num_rows = 3;
 $diagrams_per_page = $num_cols * $num_rows;
 
 $image_size_mm = 55; // Diagram size
-$solution_space_mm = 14; // Space for student to write solution (20% smaller than 20mm)
+$solution_space_mm = 14; // Space for student to write solution (adjusted for even rows)
 
 // Calculate padding based on new image size and solution space
 $padding_h = ($usable_width - ($num_cols * $image_size_mm)) / ($num_cols - 1); // Horizontal padding
@@ -223,19 +223,29 @@ foreach ($problems as $index => $problem) {
     $description_text = utf8_decode(($index + 1) . ' ' . $stars_text);
 
     $pdf->SetFont('Arial', 'B', 10); // Font for description
-    $pdf->SetXY($x, $y); // Position above diagram
-    $pdf->Cell($image_size_mm, 5, $description_text, 0, 0, 'C'); // Centered text
+    
+    // Calculate width of description text
+    $text_width_mm = $pdf->GetStringWidth($description_text); 
+    $square_size_mm = 3; // Size of the color square
+    $gap_between_text_square = 2; // Gap between text and square
 
-    // Turn Indicator Square (next to description)
+    // Total width of the description block (text + gap + square)
+    $total_desc_block_width = $text_width_mm + $gap_between_text_square + $square_size_mm;
+
+    // Calculate X position to center the entire block above the diagram
+    $desc_block_x = $x + (($image_size_mm - $total_desc_block_width) / 2);
+
+    // Set position for the text
+    $pdf->SetXY($desc_block_x, $y); 
+    $pdf->Cell($text_width_mm, 5, $description_text, 0, 0, 'L'); // Left aligned within its cell
+
+    // Turn Indicator Square (next to description text)
     $turn_indicator_color = (strtolower($problem['juega']) == 'blancas') ? [255, 255, 255] : [0, 0, 0];
     $pdf->SetFillColor($turn_indicator_color[0], $turn_indicator_color[1], $turn_indicator_color[2]);
     $pdf->SetDrawColor(0, 0, 0); // Black border
     
-    // Calculate position for the square to be after the description text, but still centered with the diagram
-    $text_width_mm = $pdf->GetStringWidth($description_text); // Get width of the text in mm
-    $square_size_mm = 4; // Size of the color square
-    $total_desc_width = $text_width_mm + $square_size_mm + 2; // Text width + square size + small gap
-    $square_x_pos = $x + ($image_size_mm / 2) + ($text_width_mm / 2) + 2; // Position after text, centered with diagram
+    // Position the square right after the text
+    $square_x_pos = $desc_block_x + $text_width_mm + $gap_between_text_square;
     $square_y_pos = $y + 1; // Align with text vertically
 
     $pdf->Rect($square_x_pos, $square_y_pos, $square_size_mm, $square_size_mm, 'FD'); // Filled with border
@@ -252,7 +262,7 @@ foreach ($problems as $index => $problem) {
     $line_x_start = $x; // Start line at diagram's X position
     $line_width = $image_size_mm; // Line width same as diagram
     $line_spacing = 7; // Increased line spacing
-    $line_y_start = $y + 5 + $image_size_mm + 4; // 4mm below diagram
+    $line_y_start = $y + 5 + $image_size_mm + 6; // 6mm below diagram
 
     for ($i = 0; $i < 3; $i++) {
         $pdf->Line($line_x_start, $line_y_start + ($i * $line_spacing), $line_x_start + $line_width, $line_y_start + ($i * $line_spacing));
