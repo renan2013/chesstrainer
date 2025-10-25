@@ -61,7 +61,7 @@ function generateBoardImage($fen, $problem_index, $turn, $difficulty)
 {
     $square_size = 50; // 50x50 pixels per square
     $board_size = 8 * $square_size;
-    $text_height = 25; // Increased height for text area above the board
+    $text_height = 20; // Height for the text area above the board
     $total_image_height = $board_size + $text_height;
 
     $path_piezas = __DIR__ . '/img/chesspieces/wikipedia/';
@@ -78,14 +78,13 @@ function generateBoardImage($fen, $problem_index, $turn, $difficulty)
     $dark_color = imagecolorallocate($board_img, 181, 136, 99);  // Dark square color
     
     // Colors for text and indicators
-    $text_bg_color = imagecolorallocate($board_img, 50, 50, 50); // Dark background for text
     $text_color = imagecolorallocate($board_img, 255, 255, 255); // White text
     $white_square_color = imagecolorallocate($board_img, 255, 255, 255);
     $black_square_color = imagecolorallocate($board_img, 0, 0, 0);
     $star_color = imagecolorallocate($board_img, 255, 215, 0); // Gold for stars
 
-    // Fill the text background area
-    imagefilledrectangle($board_img, 0, 0, $board_size, $text_height, $text_bg_color);
+    // Fill the text background area (now transparent/default black)
+    // imagefilledrectangle($board_img, 0, 0, $board_size, $text_height, $text_bg_color); // Removed as per request
 
     // Difficulty Stars
     $num_stars = 0;
@@ -98,14 +97,18 @@ function generateBoardImage($fen, $problem_index, $turn, $difficulty)
     $star_x_start = 5; // Start drawing stars from left
     $star_y = 5; // Y position for stars
     for ($i = 0; $i < $num_stars; $i++) {
-        imagefilledrectangle($board_img, $star_x_start + ($i * 10), $star_y, $star_x_start + 8 + ($i * 10), $star_y + 8, $star_color); // Draw small filled squares for stars
+        imagestring($board_img, 2, $star_x_start + ($i * 10), $star_y, '*', $star_color); // Use '*' for stars
     }
 
     // Add Diagram Number and Turn Text
-    $text_diag_turn = ($problem_index + 1) . ' - Juegan:';
+    $text_diag_turn = ($problem_index + 1) . ' - '; // Removed "Juegan:"
     $font_size = 3; // GD font size (1-5)
     $text_diag_turn_width = imagefontwidth($font_size) * strlen($text_diag_turn);
-    $text_diag_turn_x = ($board_size - $text_diag_turn_width) / 2; // Center the text
+    // Position text after stars, or centered if no stars
+    $text_diag_turn_x = $star_x_start + ($num_stars * 10) + 5; // Position after stars
+    if ($num_stars == 0) { // If no stars, center the text
+        $text_diag_turn_x = ($board_size - $text_diag_turn_width) / 2;
+    }
     imagestring($board_img, $font_size, (int)$text_diag_turn_x, $star_y, $text_diag_turn, $text_color);
 
     // Add Color Indicator Square for Turn
@@ -211,7 +214,7 @@ $num_rows = 3;
 $diagrams_per_page = $num_cols * $num_rows;
 
 $image_size_mm = 55; // Diagram size
-$solution_space_mm = 10; // Space for student to write solution
+$solution_space_mm = 0; // Space for student to write solution (0 cm)
 
 // Calculate padding based on new image size and solution space
 $padding_h = ($usable_width - ($num_cols * $image_size_mm)) / ($num_cols - 1); // Horizontal padding
