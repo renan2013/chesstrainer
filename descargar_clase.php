@@ -210,23 +210,27 @@ foreach ($problems as $index => $problem) {
     $y = $y_start_content + ($row * ($total_row_height + $padding_v));
 
     // --- Diagram Description (outside board) ---
-    $text_diag_turn = ($index + 1) . ' - '; 
-    $num_stars = 0;
-    switch ($problem['dificultad']) {
-        case 'Fácil': $num_stars = 1; break;
-        case 'Intermedio': $num_stars = 2; break;
-        case 'Difícil': $num_stars = 3; break;
-        case 'Experto': $num_stars = 4; break;
-    }
-    $stars_text = str_repeat('*', $num_stars);
+    $stars_text = str_repeat('*', (function($d){ 
+        switch ($d) { 
+            case 'Fácil': return 1; 
+            case 'Intermedio': return 2; 
+            case 'Difícil': return 3; 
+            case 'Experto': return 4; 
+            default: return 0; 
+        } 
+    })($problem['dificultad']));
 
-    $turn_text = ucfirst($problem['juega']);
-    $description_text = utf8_decode($stars_text . ' ' . $text_diag_turn . $turn_text);
+    $description_text = utf8_decode(($index + 1) . ' ' . $stars_text);
 
     $pdf->SetFont('Arial', 'B', 10); // Font for description
     $pdf->SetXY($x, $y); // Position above diagram
-    $pdf->Cell($image_size_mm, 5, $description_text, 0, 0, 'L');
-    $pdf->Ln(5); // Move down for the image
+    $pdf->Cell($image_size_mm, 5, $description_text, 0, 0, 'C'); // Centered text
+
+    // Turn Indicator Square (next to description)
+    $turn_indicator_color = (strtolower($problem['juega']) == 'blancas') ? [255, 255, 255] : [0, 0, 0];
+    $pdf->SetFillColor($turn_indicator_color[0], $turn_indicator_color[1], $turn_indicator_color[2]);
+    $pdf->SetDrawColor(0, 0, 0); // Black border
+    $pdf->Rect($x + $pdf->GetStringWidth($description_text) + 2, $y + 1, 4, 4, 'FD'); // Filled with border
 
     // Generate the board image for the current problem
     $image_path = generateBoardImage($problem['fen']); // No text/indicators in image
@@ -239,8 +243,8 @@ foreach ($problems as $index => $problem) {
     $pdf->SetDrawColor(0, 0, 0); // Black lines
     $line_x_start = $x; // Start line at diagram's X position
     $line_width = $image_size_mm; // Line width same as diagram
-    $line_spacing = 5; // 5mm between lines
-    $line_y_start = $y + 5 + $image_size_mm + 2; // 2mm below diagram
+    $line_spacing = 7; // Increased line spacing
+    $line_y_start = $y + 5 + $image_size_mm + 5; // 5mm below diagram
 
     for ($i = 0; $i < 3; $i++) {
         $pdf->Line($line_x_start, $line_y_start + ($i * $line_spacing), $line_x_start + $line_width, $line_y_start + ($i * $line_spacing));
