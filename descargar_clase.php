@@ -137,7 +137,7 @@ class PDF extends FPDF
         global $category_name, $nombre_publicacion;
 
         $logo_width = 22.5; // 25% smaller
-        $logo_height = 12; // Assuming square logos
+        $logo_height = 10; // Assuming square logos
         $logo_y = 8; // Top position for logos
 
         // Left Logo (Chess Trainer Logo)
@@ -189,7 +189,7 @@ $num_cols = 3;
 $num_rows = 3;
 $diagrams_per_page = $num_cols * $num_rows;
 
-$image_size_mm = 55; // Diagram size
+$image_size_mm = 50; // Diagram size
 $solution_space_mm = 13; // Space for student to write solution (adjusted for even rows)
 
 // Calculate padding based on new image size and solution space
