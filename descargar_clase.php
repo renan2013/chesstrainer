@@ -137,7 +137,7 @@ class PDF extends FPDF
         global $category_name, $nombre_publicacion;
 
         $logo_width = 22.5; // 25% smaller
-        $logo_height = 22.5; // Assuming square logos
+        $logo_height = 12; // Assuming square logos
         $logo_y = 8; // Top position for logos
 
         // Left Logo (Chess Trainer Logo)
