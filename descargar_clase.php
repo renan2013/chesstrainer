@@ -61,9 +61,6 @@ function generateBoardImage($fen, $problem_index, $turn, $difficulty)
 {
     $square_size = 50; // 50x50 pixels per square
     $board_size = 8 * $square_size;
-    $text_height = 20; // Height for the text area above the board
-    $total_image_height = $board_size + $text_height;
-
     $path_piezas = __DIR__ . '/img/chesspieces/wikipedia/';
     $temp_dir = __DIR__ . '/admin/uploads/temp_diagrams/';
 
@@ -72,57 +69,23 @@ function generateBoardImage($fen, $problem_index, $turn, $difficulty)
         mkdir($temp_dir, 0775, true);
     }
 
-    // Create blank board canvas with extra space for text
-    $board_img = imagecreatetruecolor($board_size, $total_image_height);
-    $light_color = imagecolorallocate($board_img, 240, 217, 181); // Light square color
-    $dark_color = imagecolorallocate($board_img, 181, 136, 99);  // Dark square color
+    // Create blank board canvas (no extra space for text at top)
+    $board_img = imagecreatetruecolor($board_size, $board_size);
     
-    // Colors for text and indicators
-    $text_color = imagecolorallocate($board_img, 255, 255, 255); // White text
-    $white_square_color = imagecolorallocate($board_img, 255, 255, 255);
-    $black_square_color = imagecolorallocate($board_img, 0, 0, 0);
-    $star_color = imagecolorallocate($board_img, 255, 215, 0); // Gold for stars
+    // Colors for board, text, and indicators
+    $light_square_color = imagecolorallocate($board_img, 255, 255, 255); // White
+    $dark_square_color = imagecolorallocate($board_img, 150, 150, 150);  // Gray
+    $text_color = imagecolorallocate($board_img, 0, 0, 0); // Black text
+    $star_color = imagecolorallocate($board_img, 0, 0, 0); // Black for stars
+    $white_piece_color_indicator = imagecolorallocate($board_img, 255, 255, 255);
+    $black_piece_color_indicator = imagecolorallocate($board_img, 0, 0, 0);
+    $border_color = imagecolorallocate($board_img, 0, 0, 0); // Black border
 
-    // Fill the text background area (now transparent/default black)
-    // imagefilledrectangle($board_img, 0, 0, $board_size, $text_height, $text_bg_color); // Removed as per request
-
-    // Difficulty Stars
-    $num_stars = 0;
-    switch ($difficulty) {
-        case 'Fácil': $num_stars = 1; break;
-        case 'Intermedio': $num_stars = 2; break;
-        case 'Difícil': $num_stars = 3; break;
-        case 'Experto': $num_stars = 4; break;
-    }
-    $star_x_start = 5; // Start drawing stars from left
-    $star_y = 5; // Y position for stars
-    for ($i = 0; $i < $num_stars; $i++) {
-        imagestring($board_img, 2, $star_x_start + ($i * 10), $star_y, '*', $star_color); // Use '*' for stars
-    }
-
-    // Add Diagram Number and Turn Text
-    $text_diag_turn = ($problem_index + 1) . ' - '; // Removed "Juegan:"
-    $font_size = 3; // GD font size (1-5)
-    $text_diag_turn_width = imagefontwidth($font_size) * strlen($text_diag_turn);
-    // Position text after stars, or centered if no stars
-    $text_diag_turn_x = $star_x_start + ($num_stars * 10) + 5; // Position after stars
-    if ($num_stars == 0) { // If no stars, center the text
-        $text_diag_turn_x = ($board_size - $text_diag_turn_width) / 2;
-    }
-    imagestring($board_img, $font_size, (int)$text_diag_turn_x, $star_y, $text_diag_turn, $text_color);
-
-    // Add Color Indicator Square for Turn
-    $square_indicator_size = 10;
-    $square_indicator_x = (int)$text_diag_turn_x + $text_diag_turn_width + 5; // Position right after text
-    $square_indicator_y = $star_y; 
-    $color_indicator = (strtolower($turn) == 'blancas') ? $white_square_color : $black_square_color;
-    imagefilledrectangle($board_img, $square_indicator_x, $square_indicator_y, $square_indicator_x + $square_indicator_size, $square_indicator_y + $square_indicator_size, $color_indicator);
-
-    // Draw board squares below the text area
+    // Draw board squares
     for ($row = 0; $row < 8; $row++) {
         for ($col = 0; $col < 8; $col++) {
-            $color = (($row + $col) % 2 == 0) ? $light_color : $dark_color;
-            imagefilledrectangle($board_img, $col * $square_size, $row * $square_size + $text_height, ($col + 1) * $square_size, ($row + 1) * $square_size + $text_height, $color);
+            $color = (($row + $col) % 2 == 0) ? $light_square_color : $dark_square_color;
+            imagefilledrectangle($board_img, $col * $square_size, $row * $square_size, ($col + 1) * $square_size, ($row + 1) * $square_size, $color);
         }
     }
 
@@ -145,13 +108,47 @@ function generateBoardImage($fen, $problem_index, $turn, $difficulty)
 
                 if (file_exists($piece_file)) {
                     $piece_img = imagecreatefrompng($piece_file);
-                    imagecopyresampled($board_img, $piece_img, $col * $square_size, $row * $square_size + $text_height, 0, 0, $square_size, $square_size, imagesx($piece_img), imagesy($piece_img));
+                    // Ensure transparency for PNGs
+                    imagealphablending($board_img, true);
+                    imagesavealpha($board_img, true);
+                    imagecopyresampled($board_img, $piece_img, $col * $square_size, $row * $square_size, 0, 0, $square_size, $square_size, imagesx($piece_img), imagesy($piece_img));
                     imagedestroy($piece_img);
                 }
                 $col++;
             }
         }
     }
+
+    // Add Board Border
+    imagerectangle($board_img, 0, 0, $board_size - 1, $board_size - 1, $border_color);
+
+    // Difficulty Stars (Top-Left)
+    $num_stars = 0;
+    switch ($difficulty) {
+        case 'Fácil': $num_stars = 1; break;
+        case 'Intermedio': $num_stars = 2; break;
+        case 'Difícil': $num_stars = 3; break;
+        case 'Experto': $num_stars = 4; break;
+    }
+    $star_x_start = 5; // Start drawing stars from left
+    $star_y = 5; // Y position for stars
+    for ($i = 0; $i < $num_stars; $i++) {
+        imagestring($board_img, 2, $star_x_start + ($i * 10), $star_y, '*', $star_color); // Use '*' for stars
+    }
+
+    // Add Diagram Number and Turn Text (Top-Right)
+    $text_diag_turn = ($problem_index + 1) . ' - '; 
+    $font_size = 3; // GD font size (1-5)
+    $text_diag_turn_width = imagefontwidth($font_size) * strlen($text_diag_turn);
+    $text_diag_turn_x = $board_size - $text_diag_turn_width - 20; // Position from right edge
+    imagestring($board_img, $font_size, (int)$text_diag_turn_x, $star_y, $text_diag_turn, $text_color);
+
+    // Add Color Indicator Square for Turn (Next to Diagram Number)
+    $square_indicator_size = 10;
+    $square_indicator_x = (int)$text_diag_turn_x + $text_diag_turn_width + 2; // Position right after text
+    $square_indicator_y = $star_y; 
+    $color_indicator = (strtolower($turn) == 'blancas') ? $white_piece_color_indicator : $black_piece_color_indicator;
+    imagefilledrectangle($board_img, $square_indicator_x, $square_indicator_y, $square_indicator_x + $square_indicator_size, $square_indicator_y + $square_indicator_size, $color_indicator);
 
     // Save final image to a temporary file
     $output_file = $temp_dir . uniqid('board_', true) . '.png';
@@ -214,7 +211,7 @@ $num_rows = 3;
 $diagrams_per_page = $num_cols * $num_rows;
 
 $image_size_mm = 55; // Diagram size
-$solution_space_mm = 0; // Space for student to write solution (0 cm)
+$solution_space_mm = 20; // Space for student to write solution (2 cm)
 
 // Calculate padding based on new image size and solution space
 $padding_h = ($usable_width - ($num_cols * $image_size_mm)) / ($num_cols - 1); // Horizontal padding
@@ -250,6 +247,17 @@ foreach ($problems as $index => $problem) {
 
     // Place the image in the PDF
     $pdf->Image($image_path, $x, $y, $image_size_mm, $image_size_mm, 'PNG');
+
+    // Add solution lines below the diagram
+    $pdf->SetDrawColor(0, 0, 0); // Black lines
+    $line_x_start = $x; // Start line at diagram's X position
+    $line_width = $image_size_mm; // Line width same as diagram
+    $line_spacing = 5; // 5mm between lines
+    $line_y_start = $y + $image_size_mm + 2; // 2mm below diagram
+
+    for ($i = 0; $i < 3; $i++) {
+        $pdf->Line($line_x_start, $line_y_start + ($i * $line_spacing), $line_x_start + $line_width, $line_y_start + ($i * $line_spacing));
+    }
 
     $problem_count++;
 }
