@@ -136,8 +136,8 @@ class PDF extends FPDF
     {
         global $category_name, $nombre_publicacion;
 
-        $logo_width = 22.5; // 25% smaller
-        $logo_height = 10; // Assuming square logos
+        $logo_width = 30; // Reverted to original size
+        $logo_height = 30; // Assuming square logos
         $logo_y = 8; // Top position for logos
 
         // Left Logo (Chess Trainer Logo)
@@ -183,7 +183,7 @@ $pdf->AddPage();
 // Layout calculations for 9 diagrams (3 columns, 3 rows)
 $margin = 10; // mm
 $usable_width = 210 - (2 * $margin); // A4 width - left/right margin
-$usable_height = 297 - 35 - 15; // A4 height - y_start_content - footer space
+$usable_height = 297 - 40 - 15; // A4 height - header end Y - footer space
 
 $num_cols = 3;
 $num_rows = 3;
@@ -195,14 +195,14 @@ $solution_space_mm = 13; // Space for student to write solution (adjusted for ev
 // Calculate padding based on new image size and solution space
 $padding_h = ($usable_width - ($num_cols * $image_size_mm)) / ($num_cols - 1); // Horizontal padding
 $total_row_height = $image_size_mm + $solution_space_mm; // Total height for a diagram slot including solution space
-$padding_v = 12.2; // Reduced by 15% from 14.33mm (approx)
+$padding_v = 13.9; // Increased by 10% from 12.66mm (approx)
 
 $x_positions = [];
 for ($i = 0; $i < $num_cols; $i++) {
     $x_positions[] = $margin + ($i * ($image_size_mm + $padding_h));
 }
 
-$y_start_content = 33; // Adjusted to move content higher
+$y_start_content = 42; // Start content below header/logo
 
 $problem_count = 0;
 $temp_files = [];
