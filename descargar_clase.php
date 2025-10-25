@@ -195,7 +195,7 @@ $solution_space_mm = 13; // Space for student to write solution (adjusted for ev
 // Calculate padding based on new image size and solution space
 $padding_h = ($usable_width - ($num_cols * $image_size_mm)) / ($num_cols - 1); // Horizontal padding
 $total_row_height = $image_size_mm + $solution_space_mm; // Total height for a diagram slot including solution space
-$padding_v = 23.4; // Increased by 10% from 21.3mm (approx)
+$padding_v = 20.7; // Increased by 7% from 19.33mm (approx)
 
 $x_positions = [];
 for ($i = 0; $i < $num_cols; $i++) {
