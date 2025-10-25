@@ -202,7 +202,7 @@ for ($i = 0; $i < $num_cols; $i++) {
     $x_positions[] = $margin + ($i * ($image_size_mm + $padding_h));
 }
 
-$y_start_content = 35; // Start content below header/logo
+$y_start_content = 33; // Adjusted to move content higher
 
 $problem_count = 0;
 $temp_files = [];
