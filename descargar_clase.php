@@ -175,30 +175,29 @@ $pdf = new PDF('P', 'mm', 'A4');
 $pdf->AliasNbPages();
 $pdf->AddPage();
 
-// Layout calculations for 12 diagrams (3 columns, 4 rows)
+// Layout calculations for 9 diagrams (3 columns, 3 rows)
 $margin = 10; // mm
 $usable_width = 210 - (2 * $margin); // A4 width - left/right margin
 $usable_height = 297 - 30 - 15; // A4 height - header space - footer space (approx)
 
 $num_cols = 3;
-$num_rows = 4;
+$num_rows = 3;
 $diagrams_per_page = $num_cols * $num_rows;
 
-$padding_h = 5; // Horizontal padding between images
-$padding_v = 5; // Vertical padding between images
+$image_size_mm = 45; // Smaller diagram size
+$solution_space_mm = 20; // Space for student to write solution
 
-$image_width_mm = ($usable_width - (($num_cols - 1) * $padding_h)) / $num_cols;
-$image_height_mm = ($usable_height - (($num_rows - 1) * $padding_v)) / $num_rows;
-
-// Ensure image_width_mm and image_height_mm are roughly equal for square diagrams
-$image_size_mm = min($image_width_mm, $image_height_mm); // Use the smaller dimension to maintain aspect ratio
+// Calculate padding based on new image size and solution space
+$padding_h = ($usable_width - ($num_cols * $image_size_mm)) / ($num_cols - 1); // Horizontal padding
+$total_row_height = $image_size_mm + $solution_space_mm; // Total height for a diagram slot including solution space
+$padding_v = ($usable_height - ($num_rows * $total_row_height)) / ($num_rows - 1); // Vertical padding
 
 $x_positions = [];
 for ($i = 0; $i < $num_cols; $i++) {
     $x_positions[] = $margin + ($i * ($image_size_mm + $padding_h));
 }
 
-$y_start_content = 30; // Adjusted to make space for date below title
+$y_start_content = 30; // Start content below header/logo
 
 $problem_count = 0;
 $temp_files = [];
@@ -213,7 +212,7 @@ foreach ($problems as $index => $problem) {
     $row = floor($grid_pos / $num_cols);
 
     $x = $x_positions[$col];
-    $y = $y_start_content + ($row * ($image_size_mm + $padding_v));
+    $y = $y_start_content + ($row * ($total_row_height + $padding_v));
 
     // Generate the board image for the current problem
     $image_path = generateBoardImage($problem['fen'], $index, $problem['juega']);
