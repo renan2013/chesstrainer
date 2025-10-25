@@ -136,25 +136,35 @@ class PDF extends FPDF
     {
         global $category_name, $nombre_publicacion;
 
-        // Logo Izquierdo (Chess Trainer Logo)
-        $logo_left_path = __DIR__ . '/img/chess_trainer_logo.png'; // Assuming this is the path
+        $logo_width = 22.5; // 25% smaller
+        $logo_height = 22.5; // Assuming square logos
+        $logo_y = 8; // Top position for logos
+
+        // Left Logo (Chess Trainer Logo)
+        $logo_left_path = __DIR__ . '/img/chess_trainer_logo.png';
         if (file_exists($logo_left_path)) {
-            $this->Image($logo_left_path, 10, 8, 22.5); // X, Y, Width (25% smaller)
+            $this->Image($logo_left_path, 10, $logo_y, $logo_width, $logo_height); 
         }
         
-        // Logo Derecho (car_ajedrez.png)
-        $logo_right_path = __DIR__ . '/img/car_ajedrez.png'; // Assuming this is the path
-        $right_logo_x = $this->GetPageWidth() - 32.5; // Adjust X for right alignment (22.5mm width + 10mm margin)
+        // Right Logo (car_ajedrez.png)
+        $logo_right_path = __DIR__ . '/img/car_ajedrez.png';
+        $right_logo_x = $this->GetPageWidth() - 10 - $logo_width; // Right margin 10mm
         if (file_exists($logo_right_path)) {
-            $this->Image($logo_right_path, $right_logo_x, 8, 22.5); // X, Y, Width (25% smaller)
+            $this->Image($logo_right_path, $right_logo_x, $logo_y, $logo_width, $logo_height); 
         }
 
-        // Title: Publication Name - Category Name
+        // Title: Publication Name - Category Name (Centered)
+        $title_text = utf8_decode($nombre_publicacion . ' - ' . $category_name);
         $this->SetFont('Arial', 'B', 12); // Smaller font
-        $this->SetY(20); // Position below logos
-        $this->Cell(0, 7, utf8_decode($nombre_publicacion . ' - ' . $category_name), 0, 1, 'C');
+        $title_width = $this->GetStringWidth($title_text); 
+        $title_x = ($this->GetPageWidth() - $title_width) / 2; // Center horizontally
+        $title_y = $logo_y + ($logo_height / 2) - (7 / 2); // Vertically center with logos (7 is approx font height)
+        
+        $this->SetXY($title_x, $title_y); 
+        $this->Cell($title_width, 7, $title_text, 0, 0, 'C');
 
-        $this->Ln(5);
+        // Move cursor below the header elements for content
+        $this->SetY($logo_y + $logo_height + 2); // 2mm below the bottom of the logos
     }
 
     // Page footer
@@ -192,7 +202,9 @@ for ($i = 0; $i < $num_cols; $i++) {
     $x_positions[] = $margin + ($i * ($image_size_mm + $padding_h));
 }
 
-$y_start_content = 28; // Adjusted to move content higher
+// The y_start_content will now be determined by the Header() function's final Y position
+// We need to get the current Y position after the header is drawn
+$y_start_content = $pdf->GetY(); 
 
 $problem_count = 0;
 $temp_files = [];
@@ -200,6 +212,7 @@ $temp_files = [];
 foreach ($problems as $index => $problem) {
     if ($problem_count > 0 && $problem_count % $diagrams_per_page == 0) {
         $pdf->AddPage();
+        $y_start_content = $pdf->GetY(); // Reset y_start_content for new page
     }
 
     $grid_pos = $problem_count % $diagrams_per_page;
