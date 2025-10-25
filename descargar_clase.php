@@ -43,7 +43,8 @@ if ($id_publicacion) {
     $stmt_pub->close();
 }
 
-$stmt_prob = $conn->prepare("SELECT fen, juega FROM problemas WHERE id_categorias = ? ORDER BY orden ASC, id_problemas ASC");
+// MODIFIED: Fetch 'dificultad' for each problem
+$stmt_prob = $conn->prepare("SELECT fen, juega, dificultad FROM problemas WHERE id_categorias = ? ORDER BY orden ASC, id_problemas ASC");
 $stmt_prob->bind_param("i", $id_categoria);
 $stmt_prob->execute();
 $problems = $stmt_prob->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -56,11 +57,11 @@ if (empty($problems)) {
 
 // 3. Image Generation Function (using GD)
 // =================================================================
-function generateBoardImage($fen, $problem_index, $turn)
+function generateBoardImage($fen, $problem_index, $turn, $difficulty)
 {
     $square_size = 50; // 50x50 pixels per square
     $board_size = 8 * $square_size;
-    $text_height = 20; // Height for the text area above the board
+    $text_height = 25; // Increased height for text area above the board
     $total_image_height = $board_size + $text_height;
 
     $path_piezas = __DIR__ . '/img/chesspieces/wikipedia/';
@@ -75,18 +76,44 @@ function generateBoardImage($fen, $problem_index, $turn)
     $board_img = imagecreatetruecolor($board_size, $total_image_height);
     $light_color = imagecolorallocate($board_img, 240, 217, 181); // Light square color
     $dark_color = imagecolorallocate($board_img, 181, 136, 99);  // Dark square color
+    
+    // Colors for text and indicators
     $text_bg_color = imagecolorallocate($board_img, 50, 50, 50); // Dark background for text
     $text_color = imagecolorallocate($board_img, 255, 255, 255); // White text
+    $white_square_color = imagecolorallocate($board_img, 255, 255, 255);
+    $black_square_color = imagecolorallocate($board_img, 0, 0, 0);
+    $star_color = imagecolorallocate($board_img, 255, 215, 0); // Gold for stars
 
     // Fill the text background area
     imagefilledrectangle($board_img, 0, 0, $board_size, $text_height, $text_bg_color);
 
-    // Add text (Problem number and turn) at the top
-    $text_to_display = 'Diag. ' . ($problem_index + 1) . ' - Juegan: ' . ucfirst($turn);
+    // Difficulty Stars
+    $num_stars = 0;
+    switch ($difficulty) {
+        case 'Fácil': $num_stars = 1; break;
+        case 'Intermedio': $num_stars = 2; break;
+        case 'Difícil': $num_stars = 3; break;
+        case 'Experto': $num_stars = 4; break;
+    }
+    $star_x_start = 5; // Start drawing stars from left
+    $star_y = 5; // Y position for stars
+    for ($i = 0; $i < $num_stars; $i++) {
+        imagefilledrectangle($board_img, $star_x_start + ($i * 10), $star_y, $star_x_start + 8 + ($i * 10), $star_y + 8, $star_color); // Draw small filled squares for stars
+    }
+
+    // Add Diagram Number and Turn Text
+    $text_diag_turn = ($problem_index + 1) . ' - Juegan:';
     $font_size = 3; // GD font size (1-5)
-    $text_width = imagefontwidth($font_size) * strlen($text_to_display);
-    $text_x = ($board_size - $text_width) / 2; // Center the text
-    imagestring($board_img, $font_size, (int)$text_x, 3, $text_to_display, $text_color);
+    $text_diag_turn_width = imagefontwidth($font_size) * strlen($text_diag_turn);
+    $text_diag_turn_x = ($board_size - $text_diag_turn_width) / 2; // Center the text
+    imagestring($board_img, $font_size, (int)$text_diag_turn_x, $star_y, $text_diag_turn, $text_color);
+
+    // Add Color Indicator Square for Turn
+    $square_indicator_size = 10;
+    $square_indicator_x = (int)$text_diag_turn_x + $text_diag_turn_width + 5; // Position right after text
+    $square_indicator_y = $star_y; 
+    $color_indicator = (strtolower($turn) == 'blancas') ? $white_square_color : $black_square_color;
+    imagefilledrectangle($board_img, $square_indicator_x, $square_indicator_y, $square_indicator_x + $square_indicator_size, $square_indicator_y + $square_indicator_size, $color_indicator);
 
     // Draw board squares below the text area
     for ($row = 0; $row < 8; $row++) {
@@ -115,7 +142,6 @@ function generateBoardImage($fen, $problem_index, $turn)
 
                 if (file_exists($piece_file)) {
                     $piece_img = imagecreatefrompng($piece_file);
-                    // Resize piece image to square_size if necessary (assuming original is larger)
                     imagecopyresampled($board_img, $piece_img, $col * $square_size, $row * $square_size + $text_height, 0, 0, $square_size, $square_size, imagesx($piece_img), imagesy($piece_img));
                     imagedestroy($piece_img);
                 }
@@ -184,8 +210,8 @@ $num_cols = 3;
 $num_rows = 3;
 $diagrams_per_page = $num_cols * $num_rows;
 
-$image_size_mm = 55; // Smaller diagram size (5.5 cm)
-$solution_space_mm = 10; // Space for student to write solution (1 cm)
+$image_size_mm = 55; // Diagram size
+$solution_space_mm = 10; // Space for student to write solution
 
 // Calculate padding based on new image size and solution space
 $padding_h = ($usable_width - ($num_cols * $image_size_mm)) / ($num_cols - 1); // Horizontal padding
@@ -215,7 +241,8 @@ foreach ($problems as $index => $problem) {
     $y = $y_start_content + ($row * ($total_row_height + $padding_v));
 
     // Generate the board image for the current problem
-    $image_path = generateBoardImage($problem['fen'], $index, $problem['juega']);
+    // Pass the difficulty to the function
+    $image_path = generateBoardImage($problem['fen'], $index, $problem['juega'], $problem['dificultad']);
     $temp_files[] = $image_path;
 
     // Place the image in the PDF
