@@ -172,7 +172,7 @@ class PDF extends FPDF
     {
         $this->SetY(-15);
         $this->SetFont('Arial', 'I', 8);
-        $this->Cell(0, 10, utf8_decode('Pagina ' . $this->PageNo() . '/{nb} - developed by renangalvan.net - 2025'), 0, 0, 'C');
+        $this->Cell(0, 10, utf8_decode('Pagina ' . $this->PageNo() . '/{nb} - developed by renangalvan.net '), 0, 0, 'C');
     }
 }
 
