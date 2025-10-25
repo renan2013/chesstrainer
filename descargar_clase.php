@@ -57,10 +57,11 @@ if (empty($problems)) {
 
 // 3. Image Generation Function (using GD)
 // =================================================================
-function generateBoardImage($fen, $problem_index, $turn, $difficulty)
+function generateBoardImage($fen)
 {
     $square_size = 50; // 50x50 pixels per square
     $board_size = 8 * $square_size;
+
     $path_piezas = __DIR__ . '/img/chesspieces/wikipedia/';
     $temp_dir = __DIR__ . '/admin/uploads/temp_diagrams/';
 
@@ -69,16 +70,12 @@ function generateBoardImage($fen, $problem_index, $turn, $difficulty)
         mkdir($temp_dir, 0775, true);
     }
 
-    // Create blank board canvas (no extra space for text at top)
+    // Create blank board canvas (just the board, no extra space for text)
     $board_img = imagecreatetruecolor($board_size, $board_size);
     
-    // Colors for board, text, and indicators
+    // Colors for board
     $light_square_color = imagecolorallocate($board_img, 255, 255, 255); // White
-    $dark_square_color = imagecolorallocate($board_img, 150, 150, 150);  // Gray
-    $text_color = imagecolorallocate($board_img, 0, 0, 0); // Black text
-    $star_color = imagecolorallocate($board_img, 0, 0, 0); // Black for stars
-    $white_piece_color_indicator = imagecolorallocate($board_img, 255, 255, 255);
-    $black_piece_color_indicator = imagecolorallocate($board_img, 0, 0, 0);
+    $dark_square_color = imagecolorallocate($board_img, 200, 200, 200);  // Lighter Gray
     $border_color = imagecolorallocate($board_img, 0, 0, 0); // Black border
 
     // Draw board squares
@@ -122,34 +119,6 @@ function generateBoardImage($fen, $problem_index, $turn, $difficulty)
     // Add Board Border
     imagerectangle($board_img, 0, 0, $board_size - 1, $board_size - 1, $border_color);
 
-    // Difficulty Stars (Top-Left)
-    $num_stars = 0;
-    switch ($difficulty) {
-        case 'Fácil': $num_stars = 1; break;
-        case 'Intermedio': $num_stars = 2; break;
-        case 'Difícil': $num_stars = 3; break;
-        case 'Experto': $num_stars = 4; break;
-    }
-    $star_x_start = 5; // Start drawing stars from left
-    $star_y = 5; // Y position for stars
-    for ($i = 0; $i < $num_stars; $i++) {
-        imagestring($board_img, 2, $star_x_start + ($i * 10), $star_y, '*', $star_color); // Use '*' for stars
-    }
-
-    // Add Diagram Number and Turn Text (Top-Right)
-    $text_diag_turn = ($problem_index + 1) . ' - '; 
-    $font_size = 3; // GD font size (1-5)
-    $text_diag_turn_width = imagefontwidth($font_size) * strlen($text_diag_turn);
-    $text_diag_turn_x = $board_size - $text_diag_turn_width - 20; // Position from right edge
-    imagestring($board_img, $font_size, (int)$text_diag_turn_x, $star_y, $text_diag_turn, $text_color);
-
-    // Add Color Indicator Square for Turn (Next to Diagram Number)
-    $square_indicator_size = 10;
-    $square_indicator_x = (int)$text_diag_turn_x + $text_diag_turn_width + 2; // Position right after text
-    $square_indicator_y = $star_y; 
-    $color_indicator = (strtolower($turn) == 'blancas') ? $white_piece_color_indicator : $black_piece_color_indicator;
-    imagefilledrectangle($board_img, $square_indicator_x, $square_indicator_y, $square_indicator_x + $square_indicator_size, $square_indicator_y + $square_indicator_size, $color_indicator);
-
     // Save final image to a temporary file
     $output_file = $temp_dir . uniqid('board_', true) . '.png';
     imagepng($board_img, $output_file);
@@ -170,18 +139,18 @@ class PDF extends FPDF
         // Logo Izquierdo (Chess Trainer Logo)
         $logo_left_path = __DIR__ . '/img/chess_trainer_logo.png'; // Assuming this is the path
         if (file_exists($logo_left_path)) {
-            $this->Image($logo_left_path, 10, 8, 30); // X, Y, Width
+            $this->Image($logo_left_path, 10, 8, 22.5); // X, Y, Width (25% smaller)
         }
         
         // Logo Derecho (car_ajedrez.png)
         $logo_right_path = __DIR__ . '/img/car_ajedrez.png'; // Assuming this is the path
-        $right_logo_x = $this->GetPageWidth() - 40; // Adjust X for right alignment
+        $right_logo_x = $this->GetPageWidth() - 32.5; // Adjust X for right alignment (22.5mm width + 10mm margin)
         if (file_exists($logo_right_path)) {
-            $this->Image($logo_right_path, $right_logo_x, 8, 30); // X, Y, Width
+            $this->Image($logo_right_path, $right_logo_x, 8, 22.5); // X, Y, Width (25% smaller)
         }
 
         // Title: Publication Name - Category Name
-        $this->SetFont('Arial', 'B', 15);
+        $this->SetFont('Arial', 'B', 12); // Smaller font
         $this->SetY(20); // Position below logos
         $this->Cell(0, 7, utf8_decode($nombre_publicacion . ' - ' . $category_name), 0, 1, 'C');
 
@@ -211,7 +180,7 @@ $num_rows = 3;
 $diagrams_per_page = $num_cols * $num_rows;
 
 $image_size_mm = 55; // Diagram size
-$solution_space_mm = 20; // Space for student to write solution (2 cm)
+$solution_space_mm = 16; // Space for student to write solution (20% smaller than 20mm)
 
 // Calculate padding based on new image size and solution space
 $padding_h = ($usable_width - ($num_cols * $image_size_mm)) / ($num_cols - 1); // Horizontal padding
@@ -240,20 +209,38 @@ foreach ($problems as $index => $problem) {
     $x = $x_positions[$col];
     $y = $y_start_content + ($row * ($total_row_height + $padding_v));
 
+    // --- Diagram Description (outside board) ---
+    $text_diag_turn = ($index + 1) . ' - '; 
+    $num_stars = 0;
+    switch ($problem['dificultad']) {
+        case 'Fácil': $num_stars = 1; break;
+        case 'Intermedio': $num_stars = 2; break;
+        case 'Difícil': $num_stars = 3; break;
+        case 'Experto': $num_stars = 4; break;
+    }
+    $stars_text = str_repeat('*', $num_stars);
+
+    $turn_text = ucfirst($problem['juega']);
+    $description_text = utf8_decode($stars_text . ' ' . $text_diag_turn . $turn_text);
+
+    $pdf->SetFont('Arial', 'B', 10); // Font for description
+    $pdf->SetXY($x, $y); // Position above diagram
+    $pdf->Cell($image_size_mm, 5, $description_text, 0, 0, 'L');
+    $pdf->Ln(5); // Move down for the image
+
     // Generate the board image for the current problem
-    // Pass the difficulty to the function
-    $image_path = generateBoardImage($problem['fen'], $index, $problem['juega'], $problem['dificultad']);
+    $image_path = generateBoardImage($problem['fen']); // No text/indicators in image
     $temp_files[] = $image_path;
 
-    // Place the image in the PDF
-    $pdf->Image($image_path, $x, $y, $image_size_mm, $image_size_mm, 'PNG');
+    // Place the image in the PDF (adjust Y to be below description text)
+    $pdf->Image($image_path, $x, $y + 5, $image_size_mm, $image_size_mm, 'PNG');
 
     // Add solution lines below the diagram
     $pdf->SetDrawColor(0, 0, 0); // Black lines
     $line_x_start = $x; // Start line at diagram's X position
     $line_width = $image_size_mm; // Line width same as diagram
     $line_spacing = 5; // 5mm between lines
-    $line_y_start = $y + $image_size_mm + 2; // 2mm below diagram
+    $line_y_start = $y + 5 + $image_size_mm + 2; // 2mm below diagram
 
     for ($i = 0; $i < 3; $i++) {
         $pdf->Line($line_x_start, $line_y_start + ($i * $line_spacing), $line_x_start + $line_width, $line_y_start + ($i * $line_spacing));
