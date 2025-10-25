@@ -1,26 +1,51 @@
 <?php
-session_start();
-require_once '../db_connect.php';
+ob_start();
+$page_title = "Editar Problema";
+require_once 'includes/header.php';
 
-// Fetch id_problema early, as it's needed for POST handling and later display
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['rol'], ['administrador', 'instructor', 'creador_contenido'])) {
+    $_SESSION['error'] = "No tienes permiso para editar problemas.";
+    header("location: ../login.php"); // Redirect to login if not authorized
+    exit;
+}
+
 $id_problema = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
-// Initialize variables to prevent undefined variable warnings
-$fen = '';
-$solucion = '';
-$dificultad = '';
-$juega = '';
-$tipo_problema = '';
-$desarrollo = '';
-$id_categorias = '';
-$modo = '';
-$variante_nombre = null;
-$orden = 0;
-$pgn = '';
-$error = '';
-$problema = []; // Will hold problem data for display
+if ($id_problema == 0) {
+    $_SESSION['error'] = "ID de problema no proporcionado.";
+    header("location: anadir_problema.php");
+    exit;
+}
 
-// --- START: Move POST handling logic here to ensure headers are not sent --- 
+$problema = [];
+$error = '';
+
+// Fetch problem data
+$sql_select = "SELECT p.fen, p.solucion, p.dificultad, p.juega, p.tipo_problema, p.desarrollo, p.id_categorias, p.modo, p.variante_nombre, p.orden, p.pgn, c.id_publicacion FROM problemas p JOIN categorias c ON p.id_categorias = c.id_categorias WHERE p.id_problemas = ?";
+if ($stmt_select = $conn->prepare($sql_select)) {
+    $stmt_select->bind_param("i", $id_problema);
+    $stmt_select->execute();
+    $result_select = $stmt_select->get_result();
+    if ($result_select->num_rows == 1) {
+        $problema = $result_select->fetch_assoc();
+        // Translate 'blancas'/'negras' back to 'w'/'b' for form display
+        if ($problema['juega'] === 'blancas') {
+            $problema['juega'] = 'w';
+        } elseif ($problema['juega'] === 'negras') {
+            $problema['juega'] = 'b';
+        }
+    } else {
+        $_SESSION['error'] = "Problema no encontrado.";
+        header("location: anadir_problema.php");
+        exit;
+    }
+    $stmt_select->close();
+} else {
+    $_SESSION['error'] = "Error al preparar la consulta de selección: " . $conn->error;
+    header("location: anadir_problema.php");
+    exit;
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $fen = trim($_POST["fen"]);
     $solucion = trim($_POST["solucion"]);
@@ -65,57 +90,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt_update->close();
         }
     }
-    // If there was an error, we need to re-populate $problema for the form to display current values
-    if (!empty($error)) {
-        $problema = $_POST;
-        $problema['id_problemas'] = $id_problema;
-    }
-}
-// --- END: Move POST handling logic here --- 
-
-// If no problem ID or problem not found, redirect or show error
-if ($id_problema == 0) {
-    $_SESSION['error'] = "ID de problema no proporcionado.";
-    header("location: anadir_problema.php");
-    exit;
+    $problema = $_POST;
+    $problema['id_problemas'] = $id_problema;
 }
 
-// Fetch problem data for display (or re-populate if POST failed)
-if (empty($problema)) { // Only fetch if POST didn't happen or had no error
-    $sql_select = "SELECT p.fen, p.solucion, p.dificultad, p.juega, p.tipo_problema, p.desarrollo, p.id_categorias, p.modo, p.variante_nombre, p.orden, p.pgn, c.id_publicacion FROM problemas p JOIN categorias c ON p.id_categorias = c.id_categorias WHERE p.id_problemas = ?";
-    if ($stmt_select = $conn->prepare($sql_select)) {
-        $stmt_select->bind_param("i", $id_problema);
-        $stmt_select->execute();
-        $result_select = $stmt_select->get_result();
-        if ($result_select->num_rows == 1) {
-            $problema = $result_select->fetch_assoc();
-            // Translate 'blancas'/'negras' back to 'w'/'b' for form display
-            if ($problema['juega'] === 'blancas') {
-                $problema['juega'] = 'w';
-            } elseif ($problema['juega'] === 'negras') {
-                $problema['juega'] = 'b';
-            }
-        } else {
-            $_SESSION['error'] = "Problema no encontrado.";
-            header("location: anadir_problema.php");
-            exit;
-        }
-        $stmt_select->close();
-    } else {
-        $_SESSION['error'] = "Error al preparar la consulta de selección: " . $conn->error;
-        header("location: anadir_problema.php");
-        exit;
-    }
-}
-
-// Security check: Only allow admins/instructors/content creators to edit
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['rol'], ['administrador', 'instructor', 'creador_contenido'])) {
-    $_SESSION['error'] = "No tienes permiso para editar problemas.";
-    header("location: ../login.php"); // Redirect to login if not authorized
-    exit;
-}
-
-// Fetch all publications and categories for dropdowns
 $publicaciones = [];
 $categorias_por_publicacion = [];
 $sql_publicaciones = "SELECT id_publicacion, titulo FROM publicacion ORDER BY titulo";
@@ -135,9 +113,6 @@ if ($result_publicaciones->num_rows > 0) {
         }
     }
 }
-
-$page_title = "Editar Problema";
-require_once 'includes/header.php';
 ?>
 
     <main class="main-content">
@@ -166,6 +141,7 @@ require_once 'includes/header.php';
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label for="id_publicacion" class="form-label">Publicación</label>
+                    <select for="id_publicacion" class="form-label">Publicación</label>
                     <select class="form-select" id="id_publicacion" name="id_publicacion" required>
                         <option value="">Selecciona una publicación</option>
                         <?php foreach ($publicaciones as $pub): ?>
@@ -383,5 +359,5 @@ require_once 'includes/header.php';
             }
         });
 
-    });
 </script>
+<?php ob_end_flush(); ?>
