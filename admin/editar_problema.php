@@ -1,4 +1,5 @@
 <?php
+ob_start();
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
 $page_title = "Editar Problema";
@@ -608,4 +609,6 @@ if ($result_publicaciones->num_rows > 0) {
                 }
             }
         });
-    </script>
+</script>
+
+<?php ob_end_flush(); ?>
