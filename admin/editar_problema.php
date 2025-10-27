@@ -68,33 +68,50 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $tipo_problema = $_POST["tipo_problema"];
     $desarrollo = trim($_POST["desarrollo"]);
     $id_categorias = $_POST["id_categorias"];
-    $modo = $_POST["modo"];
+    // $modo = $_POST["modo"]; // Ya no se usa
     $variante_nombre = $_POST["variante_nombre"] ?? null;
     $orden = $_POST["orden"] ?? 0;
     $pgn = trim($_POST["pgn"]);
 
     // Si se proporciona un PGN, intenta extraer el FEN de él.
     if (!empty($pgn)) {
-        preg_match('/\[FEN "([^"]+)"\]/', $pgn, $matches);
+        preg_match('/\\\[FEN "([^"]+)"\\\]/', $pgn, $matches);
         if (isset($matches[1])) {
             $fen = $matches[1];
         }
     }
 
-    if (empty($fen) || (empty($solucion) && empty($pgn)) || empty($id_categorias) || empty($modo)) {
-        $error = "Los campos FEN, Solución, Categoría y Modo son obligatorios.";
+    if (empty($fen) || (empty($solucion) && empty($pgn)) || empty($id_categorias)) {
+        $error = "Por favor, completa todos los campos obligatorios.";
     } else {
-        $sql_update = "UPDATE problemas SET fen = ?, solucion = ?, dificultad = ?, juega = ?, tipo_problema = ?, desarrollo = ?, id_categorias = ?, modo = ?, variante_nombre = ?, orden = ?, pgn = ? WHERE id_problemas = ?";
-        if ($stmt_update = $conn->prepare($sql_update)) {
-            $stmt_update->bind_param("ssssssissisi", $fen, $solucion, $dificultad, $juega, $tipo_problema, $desarrollo, $id_categorias, $modo, $variante_nombre, $orden, $pgn, $id_problema);
-            if ($stmt_update->execute()) {
-                $_SESSION['mensaje'] = "Problema actualizado correctamente.";
-                header("location: anadir_problema.php");
-                exit;
-            } else {
-                $error = "Error al actualizar el problema: " . $stmt_update->error;
+        // Heredar el modo desde la publicación padre
+        $modo_heredado = '';
+        $sql_get_tipo = "SELECT p.tipo FROM publicacion p JOIN categorias c ON p.id_publicacion = c.id_publicacion WHERE c.id_categorias = ?";
+        if ($stmt_tipo = $conn->prepare($sql_get_tipo)) {
+            $stmt_tipo->bind_param("i", $id_categorias);
+            $stmt_tipo->execute();
+            $result_tipo = $stmt_tipo->get_result();
+            if ($result_tipo->num_rows == 1) {
+                $modo_heredado = $result_tipo->fetch_assoc()['tipo'];
             }
-            $stmt_update->close();
+            $stmt_tipo->close();
+        }
+
+        if (empty($modo_heredado)) {
+            $error = "No se pudo determinar el modo (Estudio/Problema) desde la publicación padre.";
+        } else {
+            $sql_update = "UPDATE problemas SET fen = ?, solucion = ?, dificultad = ?, juega = ?, tipo_problema = ?, desarrollo = ?, id_categorias = ?, modo = ?, variante_nombre = ?, orden = ?, pgn = ? WHERE id_problemas = ?";
+            if ($stmt_update = $conn->prepare($sql_update)) {
+                $stmt_update->bind_param("ssssssissisi", $fen, $solucion, $dificultad, $juega, $tipo_problema, $desarrollo, $id_categorias, $modo_heredado, $variante_nombre, $orden, $pgn, $id_problema);
+                if ($stmt_update->execute()) {
+                    $_SESSION['mensaje'] = "Problema actualizado correctamente.";
+                    header("location: anadir_problema.php");
+                    exit;
+                } else {
+                    $error = "Error al actualizar el problema: " . $stmt_update->error;
+                }
+                $stmt_update->close();
+            }
         }
     }
     $problema = $_POST;
@@ -103,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 $publicaciones = [];
 $categorias_por_publicacion = [];
-$sql_publicaciones = "SELECT id_publicacion, titulo FROM publicacion ORDER BY titulo";
+$sql_publicaciones = "SELECT id_publicacion, titulo, tipo FROM publicacion ORDER BY titulo"; // Añadido tipo
 $result_publicaciones = $conn->query($sql_publicaciones);
 if ($result_publicaciones->num_rows > 0) {
     while($row = $result_publicaciones->fetch_assoc()) {
@@ -147,14 +164,14 @@ if ($result_publicaciones->num_rows > 0) {
         <?php endif; ?>
 
         <form action="editar_problema.php?id=<?php echo $id_problema; ?>" method="post">
-            <div class="row mb-3">
+            <div class="row mb-2">
                 <div class="col-md-4">
-                    <label for="id_publicacion" class="form-label">Publicación</label>
+                    <label for="id_publicacion" class="form-label">Publicación (Define el Modo)</label>
                     <select id="id_publicacion" name="id_publicacion" class="form-select" required>
                         <option value="">Selecciona una publicación</option>
                         <?php foreach ($publicaciones as $pub): ?>
-                            <option value="<?php echo $pub['id_publicacion']; ?>" <?php echo ($id_publicacion_actual == $pub['id_publicacion']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($pub['titulo']); ?>
+                            <option value="<?php echo $pub['id_publicacion']; ?>" <?php echo ($id_publicacion_actual == $pub['id_publicacion']) ? 'selected' : ''; ?> data-tipo="<?php echo $pub['tipo']; ?>">
+                                <?php echo htmlspecialchars($pub['titulo']); ?> (<?php echo htmlspecialchars($pub['tipo']); ?>)
                             </option>
                         <?php endforeach; ?>
                     </select>
@@ -166,36 +183,18 @@ if ($result_publicaciones->num_rows > 0) {
                     </select>
                 </div>
                 <div class="col-md-4" id="variante_nombre_wrapper" style="display: none;">
-                    <label for="variante_nombre" class="form-label">Nombre de la Variante</label>
+                    <label for="variante_nombre" class="form-label">Nombre de la Variante (para modo Estudio)</label>
                     <input type="text" name="variante_nombre" id="variante_nombre" class="form-control" value="<?php echo htmlspecialchars($problema['variante_nombre'] ?? ''); ?>">
                 </div>
             </div>
 
-            <div class="row mb-3"> <!-- New row for Modo -->
-                <div class="col-md-4">
-                    <label for="modo" class="form-label">Modo</label>
-                    <select name="modo" id="modo" class="form-select" required>
-                        <option value="">Selecciona el modo</option>
-                        <option value="problema" <?php echo (($problema['modo'] ?? '') == 'problema') ? 'selected' : ''; ?>>Problema</option>
-                        <option value="estudio" <?php echo (($problema['modo'] ?? '') == 'estudio') ? 'selected' : ''; ?>>Estudio</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="row mb-3">
-                <div class="col-md-2" id="orden_wrapper">
-                    <label for="orden" class="form-label">Orden</label>
-                    <input type="number" name="orden" id="orden" class="form-control" value="<?php echo htmlspecialchars($problema['orden'] ?? '0'); ?>">
-                </div>
-                <div class="col-md-10">
-                    <label for="fen" class="form-label">FEN</label>
-                    <input type="text" name="fen" id="fen" value="<?php echo htmlspecialchars($problema['fen'] ?? ''); ?>" class="form-control" required>
-                </div>
-            </div>
+          
 
             <div class="row align-items-start">
                 <div class="col-md-4"> <!-- For the board -->
-                    <div id="board"></div>
+                    <div style="width: 70%; max-width: 100%; margin: 0 auto;">
+                        <div id="board"></div>
+                    </div>
                     <div class="text-center mt-3"> <!-- New div for buttons below board -->
                         <button type="button" id="startBtn" class="btn btn-secondary btn-sm">Posición Inicial</button>
                         <button type="button" id="clearBtn" class="btn btn-secondary btn-sm">Limpiar Tablero</button>
@@ -210,28 +209,40 @@ if ($result_publicaciones->num_rows > 0) {
                         </div>
                     </div>
                 </div>
-                <div id="pgn-container" class="col-md-4 mt-3"> <!-- For the PGN moves -->
-                    <h4>Movimientos</h4>
-                    <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto;">
+
+
+                <div id="pgn-container" class="col-md-4 mt-3" > <!-- For the PGN moves -->
+                    <p>Movimientos</p>
+                    <div id="pgn-moves" class="border p-3 bg-white" style="height: 360px; overflow-y: auto; border-radius: 10px;">
                         <div class="d-flex justify-content-between">
-                            <h5 class="text-center">Blancas</h5>
-                            <h5 class="text-center">Negras</h5>
+                            <p class="text-center">Blancas</p>
+                            <p class="text-center">Negras</p>
                         </div>
                     </div>
                 </div>
+
+
+
                 <div class="col-md-4"> <!-- Solucion and PGN inputs -->
-                    <div class="mb-3">
+                 
+                
+                <div class="col-md-12">
+                    <label for="fen" class="form-label">FEN</label>
+                    <input type="text" name="fen" id="fen" class="form-control" required value="<?php echo htmlspecialchars($problema['fen'] ?? ''); ?>">
+                </div>
+           
+                <div class="col-md-12">
                         <label for="solucion" class="form-label">Solución</label>
                         <textarea name="solucion" id="solucion" class="form-control" required><?php echo htmlspecialchars($problema['solucion'] ?? ''); ?></textarea>
                         <div id="solucion-feedback" class="form-text"></div>
-                    </div>
+                </div>
 
-                    <div class="mb-3">
+                <div class="col-md-12">
                         <label for="pgn" class="form-label">PGN</label>
                         <textarea name="pgn" id="pgn" class="form-control"><?php echo htmlspecialchars($problema['pgn'] ?? ''); ?></textarea>
-                    </div>
+                </div>
 
-                    <div class="mb-3">
+                <div class="col-md-12">
                         <label for="dificultad" class="form-label">Dificultad</label>
                         <select name="dificultad" id="dificultad" class="form-select" required>
                             <option value="">Selecciona</option>
@@ -240,29 +251,41 @@ if ($result_publicaciones->num_rows > 0) {
                             <option value="Difícil" <?php echo (($problema['dificultad'] ?? '') == 'Difícil') ? 'selected' : ''; ?>>Difícil</option>
                             <option value="Experto" <?php echo (($problema['dificultad'] ?? '') == 'Experto') ? 'selected' : ''; ?>>Experto</option>
                         </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Juega</label>
+                </div>
+
+                    <div class="row">
+                    <div class="col-md-8">
+                        <label class="form-label">Juega (cambiar turno)</label>
                         <div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="juega_radio" id="juega_blancas" value="w" <?php echo (($problema['juega'] ?? '') == 'w') ? 'checked' : ''; ?> disabled="true">
+                                <input class="form-check-input" type="radio" name="juega_radio" id="juega_blancas" value="w" <?php echo (in_array($problema['juega'] ?? 'w', ['blancas', 'w'])) ? 'checked' : ''; ?> disabled="true">
                                 <label class="form-check-label" for="juega_blancas">Blancas</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="juega_radio" id="juega_negras" value="b" <?php echo (($problema['juega'] ?? '') == 'b') ? 'checked' : ''; ?> disabled="true">
+                                <input class="form-check-input" type="radio" name="juega_radio" id="juega_negras" value="b" <?php echo (in_array($problema['juega'] ?? '', ['negras', 'b'])) ? 'checked' : ''; ?> disabled="true">
                                 <label class="form-check-label" for="juega_negras">Negras</label>
                             </div>
-                            <input type="hidden" name="juega" id="juega_hidden" value="<?php echo htmlspecialchars($problema['juega'] ?? ''); ?>">
+                            <input type="hidden" name="juega" id="juega_hidden" value="<?php echo htmlspecialchars(substr($problema['juega'] ?? 'w', 0, 1)); ?>">
                         </div>
                     </div>
-                    <div class="mb-3">
+
+                    <div class="col-md-4" id="orden_wrapper">
+                    <label for="orden" class="form-label">Orden</label>
+                    <input type="number" name="orden" id="orden" class="form-control" value="<?php echo htmlspecialchars($problema['orden'] ?? '0'); ?>">
+                    </div>
+                    </div>
+
+
+
+
+                    <div class="col-md-12">
                         <label for="tipo_problema" class="form-label">Tipo de Problema</label>
                         <select name="tipo_problema" id="tipo_problema" class="form-select" required>
                             <option value="">Selecciona</option>
                             <option value="Mate en 1" <?php echo (($problema['tipo_problema'] ?? '') == 'Mate en 1') ? 'selected' : ''; ?>>Mate en 1</option>
                             <option value="Mate en 2" <?php echo (($problema['tipo_problema'] ?? '') == 'Mate en 2') ? 'selected' : ''; ?>>Mate en 2</option>
                             <option value="Mate en 3" <?php echo (($problema['tipo_problema'] ?? '') == 'Mate en 3') ? 'selected' : ''; ?>>Mate en 3</option>
-                           
+                            
                             <option value="Ganan Blancas" <?php echo (($problema['tipo_problema'] ?? '') == 'Ganan Blancas') ? 'selected' : ''; ?>>Ganan Blancas</option>
                             <option value="Ganan Negras" <?php echo (($problema['tipo_problema'] ?? '') == 'Ganan Negras') ? 'selected' : ''; ?>>Ganan Negras</option>
                             <option value="Ventaja Blanca" <?php echo (($problema['tipo_problema'] ?? '') == 'Ventaja Blanca') ? 'selected' : ''; ?>>Ventaja Blanca</option>
@@ -270,29 +293,19 @@ if ($result_publicaciones->num_rows > 0) {
                             <option value="Tablas" <?php echo (($problema['tipo_problema'] ?? '') == 'Tablas') ? 'selected' : ''; ?>>Tablas</option>
                         </select>
                     </div>
+
+                    <div class="col-md-12">
+                        <label for="desarrollo" class="form-label">Desarrollo</label>
+                        <textarea name="desarrollo" id="desarrollo" class="form-control"><?php echo htmlspecialchars($problema['desarrollo'] ?? ''); ?></textarea>
+                    </div>
+                    <br/>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <a href="anadir_problema.php" class="btn btn-secondary">Cancelar</a>
+                    </div>
+
+
                 </div>
-            </div>
-            <div class="text-center mb-3"> <!-- Remaining buttons -->
-                <button type="button" id="toggleTurnBtn" class="btn btn-info btn-sm">Cambiar Turno</button>
-                <br><br>
-                <button type="button" id="pgn-first" class="btn btn-primary btn-sm"><<</button>
-                <button type="button" id="pgn-prev" class="btn btn-primary btn-sm"><</button>
-                <button type="button" id="pgn-next" class="btn btn-primary btn-sm">></button>
-                <button type="button" id="pgn-last" class="btn btn-primary btn-sm">>></button>
-            </div>
-            
-
-            
-
-            
-            <div class="mb-3">
-                <label for="desarrollo" class="form-label">Desarrollo</label>
-                <textarea name="desarrollo" id="desarrollo" class="form-control"><?php echo htmlspecialchars($problema['desarrollo'] ?? ''); ?></textarea>
-            </div>
-            
-            <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                <a href="anadir_problema.php" class="btn btn-secondary">Cancelar</a>
             </div>
         </form>
     </main>
@@ -305,12 +318,12 @@ if ($result_publicaciones->num_rows > 0) {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const modoSelect = document.getElementById('modo');
-            const varianteWrapper = document.getElementById('variante_nombre_wrapper');
-            const categoriasPorPublicacion = <?php echo json_encode($categorias_por_publicacion); ?>;
             const publicacionSelect = document.getElementById('id_publicacion');
             const categoriaSelect = document.getElementById('id_categorias');
+            const varianteWrapper = document.getElementById('variante_nombre_wrapper');
+            const categoriasPorPublicacion = <?php echo json_encode($categorias_por_publicacion); ?>;
             const idCategoriaActual = '<?php echo $problema['id_categorias'] ?? ''; ?>';
+
             const solucionTextarea = document.getElementById('solucion');
             const pgnTextarea = document.getElementById('pgn');
             const fenInput = document.getElementById('fen');
@@ -348,13 +361,10 @@ if ($result_publicaciones->num_rows > 0) {
                 let isValid = true;
                 for (let move of moves) {
                     let moveResult = null;
-                    // Check for alternative moves like (move1|move2)
                     if (move.includes('|')) {
-                        // Extract the first alternative to validate the sequence.
                         const firstAlternative = move.replace(/[()]/g, '').split('|')[0];
                         moveResult = tempGame.move(firstAlternative, { sloppy: true });
                     } else {
-                        // Standard validation for a single move
                         moveResult = tempGame.move(move, { sloppy: true });
                     }
 
@@ -372,10 +382,15 @@ if ($result_publicaciones->num_rows > 0) {
                 }
             }
 
-            function populateCategories(publicacionId) {
+            function updateCategorias() {
+                const selectedPublicacionId = publicacionSelect.value;
+                const selectedOption = publicacionSelect.options[publicacionSelect.selectedIndex];
+                const tipoPublicacion = selectedOption ? selectedOption.getAttribute('data-tipo') : '';
+                const isEstudio = tipoPublicacion === 'Estudio';
+                varianteWrapper.style.display = isEstudio ? 'block' : 'none';
                 categoriaSelect.innerHTML = '<option value="">Selecciona una categoría</option>';
-                if (publicacionId && categoriasPorPublicacion[publicacionId]) {
-                    categoriasPorPublicacion[publicacionId].forEach(categoria => {
+                if (selectedPublicacionId && categoriasPorPublicacion[selectedPublicacionId]) {
+                    categoriasPorPublicacion[selectedPublicacionId].forEach(categoria => {
                         const option = document.createElement('option');
                         option.value = categoria.id_categorias;
                         option.textContent = categoria.nombre_categoria;
@@ -384,52 +399,116 @@ if ($result_publicaciones->num_rows > 0) {
                 }
             }
 
+            publicacionSelect.addEventListener('change', updateCategorias);
+
+            let initialFen = fenInput.value || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+            game.load(initialFen);
+
             function updateJuegaFromFen(fen) {
-                const tempGame = new Chess(fen);
-                const turn = tempGame.turn();
-                juegaHiddenInput.value = turn;
-                juegaBlancasRadio.checked = turn === 'w';
-                juegaNegrasRadio.checked = turn === 'b';
+                try {
+                    const tempGame = new Chess(fen);
+                    const turn = tempGame.turn();
+                    juegaHiddenInput.value = turn;
+                    juegaBlancasRadio.checked = turn === 'w';
+                    juegaNegrasRadio.checked = turn === 'b';
+                } catch (e) {
+                    // handle error
+                }
                 validateSolution();
             }
 
-            function onPieceDrop(source, target) {
-                const move = game.move({ from: source, to: target, promotion: 'q' });
-                if (move === null) return 'snapback';
-                fenInput.value = game.fen();
-                updateJuegaFromFen(game.fen());
+            function onPieceDrop(source, target, piece, newPos, oldPos, orientation) {
+                if (source === 'spare') {
+                    if (game.put({ type: piece[1].toLowerCase(), color: piece[0] }, target)) {
+                        fenInput.value = game.fen();
+                        updateJuegaFromFen(game.fen());
+                    } else {
+                        return 'snapback';
+                    }
+                } else {
+                    const move = game.move({ from: source, to: target, promotion: 'q' });
+                    if (move === null) return 'snapback';
+                    fenInput.value = game.fen();
+                    updateJuegaFromFen(game.fen());
+                }
             }
 
             function onSnapEnd() {
                 board.position(game.fen());
             }
 
-        function renderPgnMoves() {
-            pgnMovesContainer.innerHTML = '<div class="pgn-moves-header"><div class="w-50">Blancas</div><div class="w-50">Negras</div></div>'; // Add headers
-            history = game.history({ verbose: true });
-            let movesHtml = '<div class="pgn-moves-body">';
-            let moveNumber = 1;
-            for (let i = 0; i < history.length; i += 2) {
-                const whiteMove = history[i];
-                const blackMove = history[i + 1];
-                movesHtml += `<div class="pgn-move-pair d-flex">`;
-                movesHtml += `<div class="pgn-move white w-50" data-move-index="${i}"><span>${moveNumber}.</span> ${whiteMove.san}</div>`;
-                if (blackMove) {
-                    movesHtml += `<div class="pgn-move black w-50" data-move-index="${i + 1}">${blackMove.san}</div>`;
-                } else {
-                    movesHtml += `<div class="pgn-move black w-50"></div>`;
-                }
-                movesHtml += `</div>`;
-                moveNumber++;
-            }
-            movesHtml += '</div>';
-            pgnMovesContainer.innerHTML += movesHtml;
+            const config = {
+                draggable: true,
+                dropOffBoard: 'trash',
+                sparePieces: true,
+                position: initialFen,
+                pieceTheme: '../img/chesspieces/wikipedia/{piece}.png',
+                onDrop: onPieceDrop,
+                onSnapEnd: onSnapEnd
+            };
+            board = Chessboard('board', config);
+            updateJuegaFromFen(initialFen);
+            window.addEventListener('resize', board.resize);
 
-            // Add event listeners after rendering
-            document.querySelectorAll('.pgn-move').forEach(el => {
-                el.addEventListener('click', () => goToMove(parseInt(el.dataset.moveIndex)));
+            startBtn.addEventListener('click', () => {
+                game.reset();
+                board.start();
+                fenInput.value = game.fen();
+                updateJuegaFromFen(game.fen());
             });
-        }
+
+            clearBtn.addEventListener('click', () => {
+                const emptyFen = '8/8/8/8/8/8/8/8 w - - 0 1';
+                game.load(emptyFen);
+                board.position(emptyFen);
+                fenInput.value = emptyFen;
+                updateJuegaFromFen(emptyFen);
+            });
+
+            toggleTurnBtn.addEventListener('click', () => {
+                const currentFen = game.fen();
+                const parts = currentFen.split(' ');
+                parts[1] = parts[1] === 'w' ? 'b' : 'w';
+                const newFen = parts.join(' ');
+                game.load(newFen);
+                fenInput.value = newFen;
+                board.position(newFen);
+                updateJuegaFromFen(newFen);
+            });
+
+            fenInput.addEventListener('input', () => {
+                const fen = fenInput.value;
+                if (game.load(fen)) {
+                    board.position(fen);
+                    updateJuegaFromFen(fen);
+                }
+            });
+
+            function renderPgnMoves() {
+                pgnMovesContainer.innerHTML = '<div class="pgn-moves-header d-flex"><div class="w-50">Blancas</div><div class="w-50 header-black-moves">Negras</div></div>';
+                history = game.history({ verbose: true });
+                let movesHtml = '<div class="pgn-moves-body">';
+                let moveNumber = 1;
+                for (let i = 0; i < history.length; i += 2) {
+                    const whiteMove = history[i];
+                    const blackMove = history[i + 1];
+                    movesHtml += `<div class="pgn-move-pair d-flex">`;
+                    movesHtml += `<div class="pgn-move white w-50" data-move-index="${i}"><span>${moveNumber}.</span> ${whiteMove.san}</div>`;
+                    if (blackMove) {
+                        movesHtml += `<div class="pgn-move black w-50" data-move-index="${i + 1}">${blackMove.san}</div>`;
+                    } else {
+                        movesHtml += `<div class="pgn-move black w-50"></div>`;
+                    }
+                    movesHtml += `</div>`;
+                    moveNumber++;
+                }
+                movesHtml += '</div>';
+                pgnMovesContainer.innerHTML += movesHtml;
+
+                document.querySelectorAll('.pgn-move').forEach(el => {
+                    el.addEventListener('click', () => goToMove(parseInt(el.dataset.moveIndex)));
+                });
+            }
 
             function goToMove(index) {
                 const tempGame = new Chess();
@@ -442,7 +521,7 @@ if ($result_publicaciones->num_rows > 0) {
                 currentMove = index;
                 updateActiveMove();
             }
-
+            
             function updateActiveMove() {
                 document.querySelectorAll('.pgn-move').forEach(el => el.classList.remove('active'));
                 if (currentMove > -1) {
@@ -454,64 +533,8 @@ if ($result_publicaciones->num_rows > 0) {
                 }
             }
 
-            // --- Event Listeners ---
-            modoSelect.addEventListener('change', () => {
-                varianteWrapper.style.display = modoSelect.value === 'estudio' ? 'block' : 'none';
-            });
-
-            pgnTextarea.addEventListener('input', () => {
-                const pgn = pgnTextarea.value.trim();
-                const tempGame = new Chess();
-                if (pgn && tempGame.load_pgn(pgn)) {
-                    game = tempGame;
-                    const fen = game.header().FEN || game.fen();
-                    fenInput.value = fen;
-                    board.position(fen);
-                    updateJuegaFromFen(fen);
-                    renderPgnMoves();
-                    currentMove = -1;
-                    updateActiveMove();
-                }
-                toggleSolucionRequired();
-            });
-
-            solucionTextarea.addEventListener('input', validateSolution);
-            publicacionSelect.addEventListener('change', () => populateCategories(publicacionSelect.value));
-
-            startBtn.addEventListener('click', () => {
-                game.reset();
-                board.start();
-                fenInput.value = game.fen();
-                updateJuegaFromFen(game.fen());
-            });
-
-            clearBtn.addEventListener('click', () => {
-                game.load('8/8/8/8/8/8/8/8 w - - 0 1');
-                board.position(game.fen());
-                fenInput.value = game.fen();
-                updateJuegaFromFen(game.fen());
-            });
-
-            toggleTurnBtn.addEventListener('click', () => {
-                const parts = game.fen().split(' ');
-                parts[1] = parts[1] === 'w' ? 'b' : 'w';
-                const newFen = parts.join(' ');
-                game.load(newFen);
-                fenInput.value = newFen;
-                board.position(newFen);
-                updateJuegaFromFen(newFen);
-            });
-
-            fenInput.addEventListener('input', () => {
-                if (game.load(fenInput.value)) {
-                    board.position(fenInput.value);
-                    updateJuegaFromFen(fenInput.value);
-                }
-            });
-
             document.getElementById('pgn-first').addEventListener('click', () => {
                 const initialFenHeader = game.header().FEN || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-                game.load(initialFenHeader);
                 board.position(initialFenHeader);
                 currentMove = -1;
                 updateActiveMove();
@@ -519,52 +542,70 @@ if ($result_publicaciones->num_rows > 0) {
 
             document.getElementById('pgn-prev').addEventListener('click', () => {
                 if (currentMove > -1) {
-                    goToMove(currentMove - 1);
+                    currentMove--;
+                    goToMove(currentMove);
                 }
             });
 
             document.getElementById('pgn-next').addEventListener('click', () => {
                 if (currentMove < history.length - 1) {
-                    goToMove(currentMove + 1);
+                    currentMove++;
+                    goToMove(currentMove);
                 }
             });
 
             document.getElementById('pgn-last').addEventListener('click', () => {
-                goToMove(history.length - 1);
+                const tempGame = new Chess();
+                const initialFenHeader = game.header().FEN || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+                tempGame.load_pgn(pgnTextarea.value.trim());
+                board.position(tempGame.fen());
+                currentMove = history.length - 1;
+                updateActiveMove();
+            });
+
+            pgnTextarea.addEventListener('input', function() {
+                const pgn = pgnTextarea.value.trim();
+                if (pgn) {
+                    const tempGame = new Chess();
+                    if (tempGame.load_pgn(pgn)) {
+                        game = tempGame;
+                        const fen = game.fen();
+                        fenInput.value = fen;
+                        board.position(fen);
+                        updateJuegaFromFen(fen);
+                        renderPgnMoves();
+                        currentMove = -1;
+                        updateActiveMove();
+                    }
+                }
+                toggleSolucionRequired();
             });
 
             // --- Initial Page Load Logic ---
-            varianteWrapper.style.display = modoSelect.value === 'estudio' ? 'block' : 'none';
-
-            let initialFen = fenInput.value || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
-            game.load(initialFen);
-
-            const boardConfig = {
-                draggable: true,
-                dropOffBoard: 'trash',
-                sparePieces: true,
-                position: initialFen,
-                pieceTheme: '../img/chesspieces/wikipedia/{piece}.png',
-                onDrop: onPieceDrop,
-                onSnapEnd: onSnapEnd
-            };
-            board = Chessboard('board', boardConfig);
-            updateJuegaFromFen(initialFen);
-            window.addEventListener('resize', board.resize); // Add this line for responsiveness
             toggleSolucionRequired();
+            validateSolution();
 
+            // Populate and select categories on load
             if (publicacionSelect.value) {
-                populateCategories(publicacionSelect.value);
+                updateCategorias(); // This will also handle the variante_nombre_wrapper visibility
                 setTimeout(() => {
                     if (idCategoriaActual) {
                         categoriaSelect.value = idCategoriaActual;
                     }
-                }, 100);
+                }, 100); // Timeout to allow options to be rendered
+            } else {
+                // If no publication is selected initially, still check for variante
+                updateCategorias();
             }
 
+            // Load PGN moves on initial load
             const initialPgn = pgnTextarea.value.trim();
-            if (initialPgn && game.load_pgn(initialPgn)) {
-                renderPgnMoves();
+            if (initialPgn) {
+                const tempGame = new Chess();
+                if (tempGame.load_pgn(initialPgn)) {
+                    game = tempGame;
+                    renderPgnMoves();
+                }
             }
         });
     </script>
