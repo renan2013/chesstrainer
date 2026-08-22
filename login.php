@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <div class="text-center mb-4">
         <img src="img/logo_ct.svg" alt="Chess Trainer Logo" style="width: 225px; height: auto;">
     </div>
-    <h3 class="text-center mb-4">Inicia tu entrenamiento</h3>
+    <h3 class="text-center mb-4">Inicia tu entrenamiento.</h3>
        
     <?php if(!empty($error)): ?>
         <div class="alert alert-danger" role="alert"><?php echo $error; ?></div>
