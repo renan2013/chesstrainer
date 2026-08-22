@@ -3,7 +3,7 @@ require_once '../includes/db.php';
 session_start();
 
 // Verificar si el usuario ha iniciado sesión y tiene el rol adecuado
-if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['rol'], ['administrador', 'instructor'])) {
+if (!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true || !in_array($_SESSION['rol'], ['administrador', 'instructor', 'creador_contenido'])) {
     header("location: ../login.php");
     exit;
 }

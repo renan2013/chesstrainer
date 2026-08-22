@@ -23,5 +23,6 @@ if ($conn->connect_error) {
 
 // Establecer el charset a utf8mb4 para soportar caracteres especiales
 $conn->set_charset("utf8mb4");
+$conn->query("SET time_zone = '-06:00'");
 
 ?>

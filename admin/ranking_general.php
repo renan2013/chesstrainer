@@ -3,7 +3,7 @@ $page_title = "Ranking General";
 require_once 'includes/header.php';
 
 // Solo administradores e instructores pueden ver esta página
-if (!in_array($_SESSION['rol'], ['administrador', 'instructor'])) {
+if (!isset($_SESSION['rol']) || !in_array($_SESSION['rol'], ['administrador', 'instructor'])) {
     header("location: index.php");
     exit;
 }

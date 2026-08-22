@@ -2,7 +2,7 @@
 $page_title = "Panel de Administración";
 require_once 'includes/header.php'; 
 
-if (!in_array($_SESSION['rol'], ['administrador', 'instructor', 'creador_contenido'])) {
+if (!isset($_SESSION['rol']) || !in_array($_SESSION['rol'], ['administrador', 'instructor', 'creador_contenido'])) {
     header("location: ../login.php");
     exit;
 }

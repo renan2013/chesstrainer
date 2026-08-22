@@ -3,7 +3,7 @@ $page_title = "Reporte de Resultados";
 require_once 'includes/header.php';
 
 // Verificar si el usuario tiene el rol adecuado para ver reportes
-if (!in_array($_SESSION['rol'], ['administrador', 'instructor'])) {
+if (!isset($_SESSION['rol']) || !in_array($_SESSION['rol'], ['administrador', 'instructor'])) {
     header("location: index.php"); // Redirigir si no tiene permiso
     exit;
 }

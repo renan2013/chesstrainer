@@ -3,7 +3,7 @@ ob_start();
 $page_title = "Añadir Diagrama";
 require_once 'includes/header.php';
 
-if (!in_array($_SESSION['rol'], ['administrador', 'creador_contenido'])) {
+if (!isset($_SESSION['rol']) || !in_array($_SESSION['rol'], ['administrador', 'instructor', 'creador_contenido'])) {
     header("location: index.php");
     exit;
 }
