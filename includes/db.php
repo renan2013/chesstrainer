@@ -4,4 +4,49 @@ $root_db = __DIR__ . '/../db_connect.php';
 if (file_exists($root_db)) {
     require_once $root_db;
 }
+
+if (!function_exists('get_image_url')) {
+    function get_image_url($raw_path, $is_admin = false) {
+        $fallback = $is_admin ? '../img/chess_trainer_logo.png' : 'img/chess_trainer_logo.png';
+        if (empty($raw_path) || !is_string($raw_path)) {
+            return $fallback;
+        }
+
+        $path = trim($raw_path);
+        if (empty($path)) {
+            return $fallback;
+        }
+
+        if (preg_match('/^https?:\/\//i', $path)) {
+            return $path;
+        }
+
+        $path = ltrim($path, '/\\');
+
+        while (strpos($path, 'admin/admin/') === 0) {
+            $path = substr($path, 6);
+        }
+
+        if (!$is_admin) {
+            if (strpos($path, 'admin/') === 0) {
+                return $path;
+            }
+            if (strpos($path, 'uploads/') === 0) {
+                return 'admin/' . $path;
+            }
+            return $path;
+        } else {
+            if (strpos($path, 'admin/') === 0) {
+                return substr($path, 6);
+            }
+            if (strpos($path, 'uploads/') === 0) {
+                return $path;
+            }
+            if (strpos($path, 'img/') === 0) {
+                return '../' . $path;
+            }
+            return $path;
+        }
+    }
+}
 ?>
