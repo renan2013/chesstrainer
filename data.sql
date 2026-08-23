@@ -6949,7 +6949,6 @@ INSERT INTO `problemas` (`id_problemas`, `id_categorias`, `numero`, `fen`, `solu
 (165, 25, 0, '2krr3/pp1n2qp/2p2npb/5p2/3p4/2N2Q1P/PPP1BPPB/3R1RK1 w - - 0 1', 'Qxc6+ bxc6 Ba6#', NULL, 'Intermedio', 'blancas', 'Mate en 2', '', 6, '2025-08-04 06:18:11', 'problema', NULL, 0),
 (166, 25, 0, '2kr4/pp1n1p1p/3Rpn2/1B6/4pBr1/P6q/2P2PPP/5RK1 w - - 0 1', 'Rc6+ bxc6 Ba6#', NULL, 'Fácil', 'blancas', 'Mate en 2', '', 6, '2025-08-04 06:20:10', 'problema', NULL, 0),
 (167, 25, 0, '2kr3r/pp3p1n/2n3bB/2b1p3/2Pp3P/P2q1PQ1/1P1N4/1BKR2NR b - - 0 1', 'Qc3+ bxc3 Bxa3#', NULL, 'Intermedio', 'negras', 'Mate en 2', '', 6, '2025-08-04 06:21:53', 'problema', NULL, 0),
-(168, 1, 0, '5rk1/p3bppp/5n2/3p1b2/8/1P3N1P/PB1PPP2/2KR3R b - - 0 1', 'Rc8+ Bc3 Ba3#', NULL, 'Difícil', 'negras', 'Mate en 2', '**Corregido Julián**', 6, '2025-08-04 06:26:34', 'problema', NULL, 0),
 (169, 25, 0, '2kr3r/pp1nq1bp/2p3p1/5p2/3P1Bn1/2PB1Q2/PP5P/2KR3R w - - 0 1', 'Qxc6+ bxc6 Ba6#', NULL, 'Fácil', 'blancas', 'Mate en 2', '', 6, '2025-08-04 06:28:08', 'problema', NULL, 0),
 (170, 25, 0, '2rr2k1/p3bppp/4p3/4P2P/8/2Pb1N2/PP1N1PP1/2KR3R b - - 0 1', 'Rxc3+ bxc3 Ba3#', NULL, 'Intermedio', 'negras', 'Mate en 2', '', 6, '2025-08-04 06:30:08', 'problema', NULL, 0),
 (171, 25, 0, '2kr4/pp1nqpp1/1bb1p2p/3rB3/2Q5/1N1B4/PPP2PPP/3RR1K1 w - - 0 1', 'Qxc6+ bxc6 Ba6#', NULL, 'Intermedio', 'blancas', 'Mate en 2', '', 6, '2025-08-04 06:31:55', 'problema', NULL, 0),
