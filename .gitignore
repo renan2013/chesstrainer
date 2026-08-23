@@ -5,8 +5,7 @@
 *.log
 *.tmp
 
-# Archivos subidos por los usuarios
-/admin/uploads/
+# Archivos subidos por los usuarios (mantener imagenes base)
 
 # Dependencias de PHP (manejadas por Composer)
 /vendor/
