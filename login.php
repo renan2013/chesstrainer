@@ -80,33 +80,52 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
-<div class="container">
-    <div class="text-center mb-4">
-        <img src="img/logo_ct.svg" alt="Chess Trainer Logo" style="width: 225px; height: auto;">
-    </div>
-    <h3 class="text-center mb-4">Inicia tu entrenamiento</h3>
+<div class="login-wrapper">
+    <div class="login-card">
+        <div class="login-header">
+            <img src="img/logo_ct.svg" alt="Chess Trainer Logo" class="login-logo-img">
+            <h3 class="login-title">Inicia tu entrenamiento</h3>
+            <p class="login-subtitle">Accede a tus ejercicios y mejora tu nivel de ajedrez</p>
+        </div>
        
-    <?php if(!empty($error)): ?>
-        <div class="alert alert-danger" role="alert"><?php echo $error; ?></div>
-    <?php endif; ?>
+        <?php if(!empty($error)): ?>
+            <div class="login-alert" role="alert">
+                <i class="fa-solid fa-circle-exclamation fs-5"></i>
+                <span><?php echo htmlspecialchars($error); ?></span>
+            </div>
+        <?php endif; ?>
 
-    <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
-        <div class="mb-3">
-            <label for="email" class="form-label">Email</label>
-            <input type="email" name="email" id="email" class="form-control" required>
-        </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Contraseña para Chess Trainer</label>
-            <input type="password" name="password" id="password" class="form-control" required>
-        </div>
-        <div class="d-grid">
-            <button type="submit" class="btn btn-success">Entrar</button>
-        </div>
-    </form>
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post" class="login-form">
+            <div class="mb-3">
+                <label for="email" class="form-label"><i class="fa-regular fa-envelope me-1"></i> Email</label>
+                <div class="input-icon-group">
+                    <input type="email" name="email" id="email" class="form-control" placeholder="tu_email@ejemplo.com" value="<?php echo htmlspecialchars($email); ?>" required autofocus>
+                    <i class="fa-solid fa-at input-icon-left"></i>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="password" class="form-label"><i class="fa-solid fa-lock me-1"></i> Contraseña</label>
+                <div class="input-icon-group">
+                    <input type="password" name="password" id="password" class="form-control has-toggle" placeholder="••••••••" required>
+                    <i class="fa-solid fa-key input-icon-left"></i>
+                    <button type="button" class="password-toggle-btn" id="togglePasswordBtn" title="Mostrar/Ocultar contraseña">
+                        <i class="fa-regular fa-eye" id="togglePasswordIcon"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="d-grid">
+                <button type="submit" class="btn btn-login">
+                    <i class="fa-solid fa-right-to-bracket me-2"></i>Entrar
+                </button>
+            </div>
+        </form>
 
-    <div class="text-center mt-3">
-        <p>¿No tienes una cuenta? <a href="registro.php">Regístrate aquí</a></p>
-        <p><a href="solicitar_recuperacion.php">¿Olvidaste tu contraseña?</a></p>
+        <div class="login-divider"></div>
+
+        <div class="login-footer-links">
+            <p>¿No tienes una cuenta? <a href="registro.php" class="login-link">Regístrate aquí</a></p>
+            <p><a href="solicitar_recuperacion.php" class="login-link-muted"><i class="fa-solid fa-unlock-keyhole me-1"></i>¿Olvidaste tu contraseña?</a></p>
+        </div>
     </div>
 </div>
 
@@ -116,9 +135,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Reproducir sonido al primer clic en la página
     document.body.addEventListener('click', function() {
-        document.getElementById('transform-sound').play();
+        const sound = document.getElementById('transform-sound');
+        if (sound) sound.play().catch(function() {});
     }, { once: true });
+
+    // Alternar visibilidad de la contraseña
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('togglePasswordIcon');
+
+    if (toggleBtn && passwordInput && toggleIcon) {
+        toggleBtn.addEventListener('click', function() {
+            const isPassword = passwordInput.getAttribute('type') === 'password';
+            passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+            toggleIcon.classList.toggle('fa-eye', !isPassword);
+            toggleIcon.classList.toggle('fa-eye-slash', isPassword);
+        });
+    }
 });
 </script>
 </body>
