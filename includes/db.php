@@ -17,8 +17,13 @@ if (!function_exists('get_image_url')) {
             return $fallback;
         }
 
+        // Convert any full domain URL containing uploads/ or img/ to relative subdomain path
         if (preg_match('/^https?:\/\//i', $path)) {
-            return $path;
+            if (preg_match('/(uploads\/.*|img\/.*)$/i', $path, $matches)) {
+                $path = $matches[1];
+            } else {
+                return $path;
+            }
         }
 
         $path = ltrim($path, '/\\');
