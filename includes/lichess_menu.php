@@ -1,6 +1,6 @@
 <div class="lichess-menu">
     <div class="lichess-menu-left">
-        <a href="index.php"><img src="https://ajedrezpuriscal.com/chess_trainer/img/logo_ct.svg" width="90" alt="Logo Chess Trainer"></a>
+        <a href="index.php"><img src="img/logo_ct.svg" width="90" alt="Logo Chess Trainer"></a>
         <a href="secciones.php?id_publicacion=<?php echo $id_publicacion; ?>" class="btn btn-link"><i class="fas fa-arrow-left"></i></a>
     </div>
     <div class="lichess-menu-center">
