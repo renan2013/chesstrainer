@@ -37,6 +37,7 @@ require_once 'db.php';
                 return;
             }
         }
+        img.classList.add('fallback-logo-img');
         img.src = 'img/chess_trainer_logo.png';
     }
     </script>

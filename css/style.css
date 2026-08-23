@@ -912,5 +912,11 @@ body.login-page::before {
     color: #64748b;
 }
 
+.card-img-wrapper img.fallback-logo-img {
+    object-fit: contain !important;
+    padding: 24px !important;
+    background-color: #f8fafc !important;
+}
+
 
 ""

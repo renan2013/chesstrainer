@@ -36,7 +36,12 @@ if (!function_exists('get_image_url')) {
 
         if (!$is_admin) {
             // For root pages (index.php, secciones.php):
-            // Return clean path (e.g. uploads/publicaciones/...)
+            if (strpos($path, 'admin/') === 0) {
+                return $path;
+            }
+            if (strpos($path, 'uploads/') === 0) {
+                return 'admin/' . $path;
+            }
             return $path;
         } else {
             // For admin pages (admin/index.php, admin/gestionar_publicaciones.php):
