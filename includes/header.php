@@ -23,5 +23,22 @@ require_once 'db.php';
             vertical-align: -0.125em; /* Alineación vertical */
         }
     </style>
+    <script>
+    function handleImgError(img) {
+        if (!img) return;
+        if (!img.getAttribute('data-tried-alt')) {
+            img.setAttribute('data-tried-alt', '1');
+            var src = img.getAttribute('src') || '';
+            if (src.indexOf('admin/uploads/') !== -1) {
+                img.src = src.replace('admin/uploads/', 'uploads/');
+                return;
+            } else if (src.indexOf('uploads/') !== -1 && src.indexOf('admin/uploads/') === -1) {
+                img.src = src.replace('uploads/', 'admin/uploads/');
+                return;
+            }
+        }
+        img.src = 'img/chess_trainer_logo.png';
+    }
+    </script>
     </head>
 <body class="<?php echo basename($_SERVER['PHP_SELF']) == 'login.php' ? 'login-page' : ''; ?>">

@@ -104,7 +104,7 @@ if ($result_all_categories) {
                         <?php if ($category['estado'] == 0 && isset($_SESSION['rol']) && in_array($_SESSION['rol'], ['administrador', 'creador_contenido'])): ?>
                             <span class="badge bg-secondary position-absolute top-0 start-0 m-2">Inactiva</span>
                         <?php endif; ?>
-                        <img src="<?php echo htmlspecialchars(get_image_url($category['imagen_categoria'] ?? '')); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($category['nombre_categoria']); ?>" style="height: 130px; object-fit: cover; <?php echo ($category['estado'] == 0) ? 'opacity: 0.6;' : ''; ?>" onerror="this.onerror=null; this.src='img/chess_trainer_logo.png';">
+                        <img src="<?php echo htmlspecialchars(get_image_url($category['imagen_categoria'] ?? '')); ?>" class="card-img-top" alt="<?php echo htmlspecialchars($category['nombre_categoria']); ?>" style="height: 130px; object-fit: cover; <?php echo ($category['estado'] == 0) ? 'opacity: 0.6;' : ''; ?>" onerror="handleImgError(this)">
                         <div class="card-body">
                             <h5 class="card-title"><?php echo htmlspecialchars($category['nombre_categoria']); ?> (<?php echo $category['total_diagramas']; ?>)</h5>
                             <p class="card-text"><?php echo isset($category['porcentaje_aciertos']) ? htmlspecialchars(number_format($category['porcentaje_aciertos'], 0)) . '% resuelto' : '0% resuelto'; ?></p>

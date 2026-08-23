@@ -17,7 +17,7 @@ if (!function_exists('get_image_url')) {
             return $fallback;
         }
 
-        // Convert any full domain URL containing uploads/ or img/ to relative subdomain path
+        // Convert any full domain URL containing uploads/ or img/ to relative path
         if (preg_match('/^https?:\/\//i', $path)) {
             if (preg_match('/(uploads\/.*|img\/.*)$/i', $path, $matches)) {
                 $path = $matches[1];
@@ -26,21 +26,20 @@ if (!function_exists('get_image_url')) {
             }
         }
 
+        // Strip leading slashes
         $path = ltrim($path, '/\\');
 
+        // Fix double admin prefixes if any
         while (strpos($path, 'admin/admin/') === 0) {
             $path = substr($path, 6);
         }
 
         if (!$is_admin) {
-            if (strpos($path, 'admin/') === 0) {
-                return $path;
-            }
-            if (strpos($path, 'uploads/') === 0) {
-                return 'admin/' . $path;
-            }
+            // For root pages (index.php, secciones.php):
+            // Return clean path (e.g. uploads/publicaciones/...)
             return $path;
         } else {
+            // For admin pages (admin/index.php, admin/gestionar_publicaciones.php):
             if (strpos($path, 'admin/') === 0) {
                 return substr($path, 6);
             }

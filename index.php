@@ -133,7 +133,7 @@ $conn->close();
                                             <a href="<?php echo $link; ?>" class="text-decoration-none h-100 d-flex flex-column">
                                                 <div class="card-img-wrapper">
                                                     <span class="type-badge-custom <?php echo $badge_class; ?>"><?php echo $badge_label; ?></span>
-                                                    <img src="<?php echo htmlspecialchars(get_image_url($mat['imagen_publicacion'])); ?>" alt="<?php echo htmlspecialchars($mat['titulo']); ?>" onerror="this.onerror=null; this.src='img/chess_trainer_logo.png';">
+                                                    <img src="<?php echo htmlspecialchars(get_image_url($mat['imagen_publicacion'])); ?>" alt="<?php echo htmlspecialchars($mat['titulo']); ?>" onerror="handleImgError(this)">
                                                 </div>
                                                 <div class="course-card-body">
                                                     <h5 class="course-card-title"><?php echo htmlspecialchars($mat['titulo']); ?></h5>
@@ -185,7 +185,7 @@ $conn->close();
                                 <a href="secciones.php?id_publicacion=<?php echo $pub['id_publicacion']; ?>" class="text-decoration-none h-100 d-flex flex-column">
                                     <div class="card-img-wrapper">
                                         <span class="type-badge-custom <?php echo $badge_class; ?>"><?php echo $badge_label; ?></span>
-                                        <img src="<?php echo htmlspecialchars(get_image_url($pub['imagen_publicacion'])); ?>" alt="<?php echo htmlspecialchars($pub['titulo']); ?>" onerror="this.onerror=null; this.src='img/chess_trainer_logo.png';">
+                                        <img src="<?php echo htmlspecialchars(get_image_url($pub['imagen_publicacion'])); ?>" alt="<?php echo htmlspecialchars($pub['titulo']); ?>" onerror="handleImgError(this)">
                                     </div>
                                     <div class="course-card-body">
                                         <h5 class="course-card-title"><?php echo htmlspecialchars($pub['titulo']); ?></h5>
@@ -230,7 +230,7 @@ $conn->close();
                                 <a href="secciones.php?id_publicacion=<?php echo $pub['id_publicacion']; ?>" class="text-decoration-none h-100 d-flex flex-column">
                                     <div class="card-img-wrapper">
                                         <span class="type-badge-custom <?php echo $badge_class; ?>"><?php echo $badge_label; ?></span>
-                                        <img src="<?php echo htmlspecialchars(get_image_url($pub['imagen_publicacion'])); ?>" alt="<?php echo htmlspecialchars($pub['titulo']); ?>" onerror="this.onerror=null; this.src='img/chess_trainer_logo.png';">
+                                        <img src="<?php echo htmlspecialchars(get_image_url($pub['imagen_publicacion'])); ?>" alt="<?php echo htmlspecialchars($pub['titulo']); ?>" onerror="handleImgError(this)">
                                     </div>
                                     <div class="course-card-body">
                                         <h5 class="course-card-title"><?php echo htmlspecialchars($pub['titulo']); ?></h5>
