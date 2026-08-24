@@ -1,19 +1,19 @@
 <div class="lichess-menu">
-    <!-- LEFT SIDE: Logo 2.0 + Volver Button -->
+    <!-- LEFT SIDE: Logo 2.0 + Volver Button (Desktop) -->
     <div class="lichess-menu-left gap-2">
         <a href="index.php" class="logo-wrapper-20">
             <img src="img/logo_ct.svg" width="90" alt="Logo Chess Trainer">
             <span class="badge-20">2.0</span>
         </a>
         <?php if (isset($id_publicacion) && !empty($id_publicacion)): ?>
-            <a href="secciones.php?id_publicacion=<?php echo $id_publicacion; ?>" class="btn btn-sm btn-outline-secondary ms-2" title="Volver a publicaciones">
+            <a href="secciones.php?id_publicacion=<?php echo $id_publicacion; ?>" class="btn btn-sm btn-outline-secondary ms-2 d-none d-md-inline-flex" title="Volver a publicaciones">
                 <i class="fas fa-arrow-left me-1"></i> Volver
             </a>
         <?php endif; ?>
     </div>
 
-    <!-- CENTER: Title & Exercise Counter -->
-    <div class="lichess-menu-center">
+    <!-- CENTER: Title & Exercise Counter (Desktop) -->
+    <div class="lichess-menu-center d-none d-md-block">
         <h4 class="mb-0 fw-bold fs-5 text-dark">
             <?php
             if (isset($nombre_publicacion) && !empty($nombre_publicacion)) {
@@ -68,5 +68,24 @@
                 </li>
             </ul>
         </div>
+    </div>
+</div>
+
+<!-- SECOND LINE FOR MOBILE DEVICES (< 768px) -->
+<div class="lichess-menu-mobile-subbar d-flex d-md-none justify-content-between align-items-center px-3 py-2 border-bottom bg-white">
+    <?php if (isset($id_publicacion) && !empty($id_publicacion)): ?>
+        <a href="secciones.php?id_publicacion=<?php echo $id_publicacion; ?>" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver
+        </a>
+    <?php endif; ?>
+    <div class="text-end">
+        <span class="fw-bold text-dark d-block small">
+            <?php echo isset($category_name) ? htmlspecialchars($category_name) : ''; ?>
+        </span>
+        <?php if (isset($total_problems_in_current_category)): ?>
+            <span class="text-muted extra-small">
+                Ejercicio <span id="current-problem-number-mobile"><?php echo (isset($current_problem_index) ? $current_problem_index + 1 : 1); ?></span> de <?php echo $total_problems_in_current_category; ?>
+            </span>
+        <?php endif; ?>
     </div>
 </div>

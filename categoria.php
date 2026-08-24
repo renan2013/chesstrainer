@@ -921,6 +921,7 @@ $total_problems_in_current_category = count($all_problems);
         if (allProblems.length > 0) {
             var currentProblem = allProblems[currentProblemIndex];
             $('#current-problem-number').text(currentProblemIndex + 1);
+            $('#current-problem-number-mobile').text(currentProblemIndex + 1);
             $('#total-problems').text(allProblems.length);
             $('#current-diagram-id').text(currentProblem.id_problemas);
             $('#attempts-display').text(currentProblem.attempts_by_user);
