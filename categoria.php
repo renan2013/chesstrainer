@@ -84,7 +84,9 @@ $sql_problems = "
         pub.titulo AS nombre_publicacion,
         p.variante_nombre, -- Added for study mode list
         COALESCE(pu.resuelto_correctamente, 0) AS solved_by_user,
-        COALESCE(pu.intentos, 0) AS attempts_by_user -- NEW: Fetch attempts
+        COALESCE(pu.intentos, 0) AS attempts_by_user, -- Fetch attempts
+        (SELECT COUNT(*) FROM votos_belleza vb WHERE vb.id_problemas = p.id_problemas) AS total_votos_belleza,
+        (SELECT COUNT(*) FROM votos_belleza vb2 WHERE vb2.id_problemas = p.id_problemas AND vb2.id_usuarios = ?) AS user_voted_beauty
     FROM
         problemas p
     JOIN
@@ -101,7 +103,7 @@ $sql_problems = "
         p.orden ASC, FIELD(p.dificultad, 'Fácil', 'Intermedio', 'Difícil', 'Experto'), p.id_problemas ASC";
 
 if ($stmt_problems = $conn->prepare($sql_problems)) {
-    $stmt_problems->bind_param("ii", $id_usuario_actual, $current_category_id);
+    $stmt_problems->bind_param("iii", $id_usuario_actual, $id_usuario_actual, $current_category_id);
     $stmt_problems->execute();
     $result_problems = $stmt_problems->get_result();
     while ($row = $result_problems->fetch_assoc()) {
@@ -208,6 +210,15 @@ $total_problems_in_current_category = count($all_problems);
                     <div id="difficulty-stars" class="text-warning fs-6">
                         <!-- Difficulty stars -->
                     </div>
+                </div>
+                <!-- BOTONES DE VOTACIÓN DE BELLEZA Y EXPORTACIÓN DE FICHA -->
+                <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top gap-2">
+                    <button id="beautyVoteBtn" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-bold shadow-sm d-inline-flex align-items-center gap-1" title="Votar la belleza del ejercicio">
+                        <i id="beautyHeartIcon" class="far fa-heart"></i> <span id="beautyVoteText">¡Qué belleza!</span> (<span id="beautyVoteCount">0</span>)
+                    </button>
+                    <a id="exportDiagramBtn" href="#" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-sm d-inline-flex align-items-center gap-1" title="Exportar ficha e imprimir diagrama">
+                        <i class="fas fa-file-export"></i> Exportar Ficha
+                    </a>
                 </div>
             </div>
 
@@ -442,6 +453,27 @@ $total_problems_in_current_category = count($all_problems);
         
         $('#nextItemBtn, #mobile-next-btn, #desktop-nav-next-btn').on('click', loadNextProblem);
         $('#repeatBoardBtn, #repeatProblemBtn').on('click', retryCurrentProblem);
+
+        $('#beautyVoteBtn').on('click', function() {
+            var currentProblem = allProblems[currentProblemIndex];
+            $.ajax({
+                url: 'votar_belleza.php',
+                type: 'POST',
+                dataType: 'json',
+                data: { problem_id: currentProblem.id_problemas },
+                success: function(res) {
+                    if (res.success) {
+                        currentProblem.user_voted_beauty = res.voted ? 1 : 0;
+                        currentProblem.total_votos_belleza = res.total_votos;
+                        $('#beautyHeartIcon').addClass('fa-bounce');
+                        setTimeout(() => $('#beautyHeartIcon').removeClass('fa-bounce'), 1000);
+                        updateProblemDisplay();
+                    } else if (res.message) {
+                        alert(res.message);
+                    }
+                }
+            });
+        });
 
         $('#flipBoardBtn').on('click', function() {
             if (board) {
@@ -1059,6 +1091,24 @@ $total_problems_in_current_category = count($all_problems);
             }
 
             updateDifficultyStars(currentProblem.dificultad);
+
+            // Actualizar estado de votación de belleza y enlaces de exportación
+            var exportUrl = 'exportar_diagrama.php?problem_id=' + currentProblem.id_problemas;
+            $('#exportDiagramBtn, #dropdownExportDiagramLink').attr('href', exportUrl);
+
+            var totalVotos = parseInt(currentProblem.total_votos_belleza) || 0;
+            var userVoted = (parseInt(currentProblem.user_voted_beauty) > 0);
+            $('#beautyVoteCount').text(totalVotos);
+
+            if (userVoted) {
+                $('#beautyVoteBtn').removeClass('btn-outline-danger').addClass('btn-danger text-white');
+                $('#beautyHeartIcon').removeClass('far fa-heart').addClass('fas fa-heart text-white');
+                $('#beautyVoteText').text('¡Ejercicio Bello!');
+            } else {
+                $('#beautyVoteBtn').removeClass('btn-danger text-white').addClass('btn-outline-danger');
+                $('#beautyHeartIcon').removeClass('fas fa-heart text-white').addClass('far fa-heart');
+                $('#beautyVoteText').text('¡Qué belleza!');
+            }
 
             var solvedProblemsCount = allProblems.filter(p => p.solved_by_user == 1).length;
             var totalProblemsCount = allProblems.length;

@@ -59,6 +59,11 @@
                 <li><hr class="dropdown-divider"></li>
                 <?php endif; ?>
                 <li>
+                    <a id="dropdownExportDiagramLink" class="dropdown-item text-primary fw-semibold" href="#" target="_blank">
+                        <i class="fas fa-file-export me-2 text-primary"></i> Exportar Diagrama Actual
+                    </a>
+                </li>
+                <li>
                     <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#reportErrorModal">
                         <i class="fas fa-flag text-warning me-2"></i> Reportar Error en Diagrama
                     </button>
