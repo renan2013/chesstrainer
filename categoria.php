@@ -782,18 +782,44 @@ $total_problems_in_current_category = count($all_problems);
         setTimeout(function() { handleMove(move); }, 0);
     }
 
+    function normalizeMoveString(str) {
+        if (!str) return '';
+        return str.replace(/[+#!?\s]/g, '').trim().toLowerCase();
+    }
+
+    function makeEngineMove(gameInstance, targetSan) {
+        if (!targetSan) return null;
+        var cleanTarget = targetSan.replace(/[()]/g, '').split('|')[0].trim();
+        
+        // Try direct move first
+        var res = gameInstance.move(cleanTarget);
+        if (res) return res;
+
+        // Fallback: match normalized SAN against legal moves
+        var normTarget = normalizeMoveString(cleanTarget);
+        var legalMoves = gameInstance.moves({ verbose: true });
+        for (var i = 0; i < legalMoves.length; i++) {
+            if (normalizeMoveString(legalMoves[i].san) === normTarget) {
+                return gameInstance.move(legalMoves[i]);
+            }
+        }
+        return null;
+    }
+
     function handleMove(move) {
         var expectedUserMove = currentSolutionMoves[currentMoveIndex];
         var isCorrect = false;
 
+        var userSanNorm = normalizeMoveString(move.san);
+
         // Check for alternative moves like (move1|move2)
         if (expectedUserMove.includes('|')) {
             var possibleMoves = expectedUserMove.replace(/[()]/g, '').split('|');
-            if (possibleMoves.map(m => m.toLowerCase()).includes(move.san.toLowerCase())) {
+            if (possibleMoves.map(m => normalizeMoveString(m)).includes(userSanNorm)) {
                 isCorrect = true;
             }
         } else {
-            if (move.san.toLowerCase() === expectedUserMove.toLowerCase()) {
+            if (userSanNorm === normalizeMoveString(expectedUserMove)) {
                 isCorrect = true;
             }
         }
@@ -810,25 +836,25 @@ $total_problems_in_current_category = count($all_problems);
                 // Opponent counter-move delay (650ms for realistic, perfectly synchronized rhythm)
                 setTimeout(function() {
                     var engineMoveString = currentSolutionMoves[currentMoveIndex];
-                    var move_to_play = engineMoveString;
+                    var playedMove = makeEngineMove(game, engineMoveString);
 
-                    if (engineMoveString.includes('|')) {
-                        move_to_play = engineMoveString.replace(/[()]/g, '').split('|')[0];
-                    }
+                    if (playedMove) {
+                        board.position(game.fen());
+                        playMoveSound();
+                        currentMoveIndex++;
+                        updateMoveSequenceDisplay();
+                        highlightKingInCheck();
 
-                    game.move(move_to_play);
-                    board.position(game.fen());
-                    playMoveSound();
-                    currentMoveIndex++;
-                    updateMoveSequenceDisplay();
-                    highlightKingInCheck();
-
-                    if (currentMoveIndex === currentSolutionMoves.length) {
-                        setTimeout(function() {
-                            handleProblemSolved(allProblems[currentProblemIndex]);
-                        }, 400);
+                        if (currentMoveIndex === currentSolutionMoves.length) {
+                            setTimeout(function() {
+                                handleProblemSolved(allProblems[currentProblemIndex]);
+                            }, 400);
+                        } else {
+                            setFeedbackStatus('success', '<i class="fas fa-check-circle me-2"></i>¡Correcto! Tu turno de nuevo.');
+                        }
                     } else {
-                        setFeedbackStatus('success', '<i class="fas fa-check-circle me-2"></i>¡Correcto! Tu turno de nuevo.');
+                        console.error('Could not play engine move:', engineMoveString);
+                        handleProblemSolved(allProblems[currentProblemIndex]);
                     }
                 }, 650);
             }
