@@ -403,53 +403,10 @@ $total_problems_in_current_category = count($all_problems);
 
     function playMateSound() {
         try {
-            var audio1 = new Audio('mp3/swoosh-2-99245.mp3');
-            audio1.volume = 1.0;
-            audio1.play().catch(function(e){});
-
-            setTimeout(function() {
-                var audio2 = new Audio('mp3/mario.mp3');
-                audio2.volume = 1.0;
-                audio2.play().catch(function(e){});
-            }, 120);
-
-            var AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx) return;
-            if (!window.chessAudioCtx) window.chessAudioCtx = new AudioCtx();
-            var ctx = window.chessAudioCtx;
-            if (ctx.state === 'suspended') ctx.resume();
-
-            // Bass Boom Impact
-            var bassOsc = ctx.createOscillator();
-            var bassGain = ctx.createGain();
-            bassOsc.type = 'sine';
-            bassOsc.frequency.setValueAtTime(140, ctx.currentTime);
-            bassOsc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.5);
-            bassGain.gain.setValueAtTime(1.0, ctx.currentTime);
-            bassGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-            bassOsc.connect(bassGain);
-            bassGain.connect(ctx.destination);
-            bassOsc.start();
-            bassOsc.stop(ctx.currentTime + 0.5);
-
-            // Dramatic Triumphant Arpeggio (C4, E4, G4, C5, E5)
-            var notes = [261.63, 329.63, 392.00, 523.25, 659.25];
-            notes.forEach(function(freq, i) {
-                setTimeout(function() {
-                    try {
-                        var osc = ctx.createOscillator();
-                        var gain = ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                        gain.gain.setValueAtTime(0.6, ctx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.start();
-                        osc.stop(ctx.currentTime + 0.7);
-                    } catch(e) {}
-                }, i * 65);
-            });
+            var audio = new Audio('mp3/mario.mp3');
+            audio.volume = 1.0;
+            audio.currentTime = 0;
+            audio.play().catch(function(e) {});
         } catch(e) {}
     }
     var initialTurn; // Variable to store the starting turn of the problem
