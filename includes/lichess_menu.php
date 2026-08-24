@@ -84,6 +84,10 @@
             <span id="mobile-turn-dot" class="turn-icon-dot white-dot me-1" style="width: 10px; height: 10px; margin-right: 4px;"></span>
             <span id="mobile-turn-text">Juegan Blancas</span>
         </span>
+        <!-- BOTÓN SIGUIENTE EJERCICIO EN MÓVIL (Al lado de Volver) -->
+        <button id="mobile-next-btn" class="btn btn-sm btn-success fw-bold d-inline-flex align-items-center gap-1 shadow-sm" style="display: none; font-size: 0.8rem;">
+            Siguiente <i class="fas fa-arrow-right"></i>
+        </button>
     </div>
     <div class="text-end">
         <span class="fw-bold text-dark d-block small">

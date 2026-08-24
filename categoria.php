@@ -434,7 +434,7 @@ $total_problems_in_current_category = count($all_problems);
         <?php if (!empty($all_problems)): ?>
         initBoard();
         
-        $('#nextItemBtn').on('click', loadNextProblem);
+        $('#nextItemBtn, #mobile-next-btn').on('click', loadNextProblem);
 
         $('#flipBoardBtn').on('click', function() {
             if (board) {
@@ -532,7 +532,7 @@ $total_problems_in_current_category = count($all_problems);
     function loadProblemByIndex(index) {
         $('#result-message-container').empty();
         setFeedbackStatus('neutral', '<i class="fas fa-chess me-2"></i>Tu turno. Realiza la jugada en el tablero.');
-        $('#action-button-container').hide();
+        $('#action-button-container, #mobile-next-btn').hide();
 
         if (index < 0 || index >= allProblems.length) {
             showScoreModal();
@@ -692,7 +692,7 @@ $total_problems_in_current_category = count($all_problems);
             lastKingSquare = null;
         }
 
-        $('#action-button-container').hide();
+        $('#action-button-container, #mobile-next-btn').hide();
         puzzleFinished = false;
 
         var currentProblem = allProblems[currentProblemIndex];
@@ -868,7 +868,7 @@ $total_problems_in_current_category = count($all_problems);
                 if (response.success) {
                     $('#rating-display').text(response.new_rating);
                 }
-                $('#action-button-container').show();
+                $('#action-button-container, #mobile-next-btn').show();
                 checkCompletion();
             }
         });
@@ -903,7 +903,7 @@ $total_problems_in_current_category = count($all_problems);
                     if (response.success) {
                         $('#rating-display').text(response.new_rating);
                     }
-                    $('#action-button-container').show();
+                    $('#action-button-container, #mobile-next-btn').show();
                     checkCompletion();
                 }
             });
