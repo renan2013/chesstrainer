@@ -1,6 +1,6 @@
 <div class="lichess-menu">
-    <!-- LEFT SIDE: Logo 2.0 + Volver Button (Desktop) -->
-    <div class="lichess-menu-left gap-2">
+    <!-- LEFT SIDE: Logo 2.0 + Volver Button + Siguiente Button (Desktop) -->
+    <div class="lichess-menu-left gap-2 align-items-center">
         <a href="index.php" class="logo-wrapper-20">
             <img src="img/logo_ct.svg" width="90" alt="Logo Chess Trainer">
             <span class="badge-20">2.0</span>
@@ -10,6 +10,9 @@
                 <i class="fas fa-arrow-left me-1"></i> Volver
             </a>
         <?php endif; ?>
+        <button id="desktop-nav-next-btn" class="btn btn-sm btn-success fw-bold d-none d-md-inline-flex align-items-center gap-1 ms-1 shadow-sm" title="Siguiente Ejercicio">
+            Siguiente <i class="fas fa-arrow-right ms-1"></i>
+        </button>
     </div>
 
     <!-- CENTER: Title & Exercise Counter (Desktop) -->
@@ -25,14 +28,9 @@
             ?>
         </h4>
         <?php if (isset($total_problems_in_current_category)): ?>
-            <div class="d-inline-flex align-items-center gap-2">
-                <span class="text-muted small">
-                    Ejercicio <span id="current-problem-number"><?php echo (isset($current_problem_index) ? $current_problem_index + 1 : 1); ?></span> de <span id="total-problems"><?php echo $total_problems_in_current_category; ?></span>
-                </span>
-                <button id="desktop-nav-next-btn" class="btn btn-sm btn-success fw-bold px-3 py-1 ms-2 shadow-sm" title="Siguiente Ejercicio">
-                    Siguiente <i class="fas fa-arrow-right ms-1"></i>
-                </button>
-            </div>
+            <span class="text-muted small">
+                Ejercicio <span id="current-problem-number"><?php echo (isset($current_problem_index) ? $current_problem_index + 1 : 1); ?></span> de <span id="total-problems"><?php echo $total_problems_in_current_category; ?></span>
+            </span>
         <?php endif; ?>
     </div>
 

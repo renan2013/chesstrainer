@@ -186,7 +186,6 @@ $total_problems_in_current_category = count($all_problems);
                         <button id="lastMoveBtn" class="btn lichess-btn-ctrl" title="Último movimiento"><i class="fas fa-fast-forward"></i></button>
                     </div>
                     <button id="flipBoardBtn" class="btn lichess-btn-ctrl me-auto" title="Rotar tablero"><i class="fas fa-retweet"></i> Rotar</button>
-                    <button id="board-next-btn" class="btn lichess-btn-ctrl btn-success text-white fw-bold ms-2" title="Siguiente Ejercicio"><i class="fas fa-arrow-right me-1"></i> Siguiente</button>
                     <span id="stopwatch" class="badge bg-dark text-white p-2 fs-6"><i class="far fa-clock me-1"></i> 00:00</span>
                 </div>
             </div>
@@ -435,7 +434,7 @@ $total_problems_in_current_category = count($all_problems);
         <?php if (!empty($all_problems)): ?>
         initBoard();
         
-        $('#nextItemBtn, #mobile-next-btn, #desktop-nav-next-btn, #board-next-btn').on('click', loadNextProblem);
+        $('#nextItemBtn, #mobile-next-btn, #desktop-nav-next-btn').on('click', loadNextProblem);
 
         $('#flipBoardBtn').on('click', function() {
             if (board) {
