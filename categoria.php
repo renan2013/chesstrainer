@@ -67,6 +67,20 @@ $id_usuario_actual = $_SESSION["id_usuarios"];
 $all_problems = []; // Array to hold all problems with their details and solved status
 $current_problem_index = 0; // Index of the problem to display initially
 
+// Auto-crear tabla votos_belleza si no existe en la base de datos para evitar errores de consulta
+$conn->query("
+    CREATE TABLE IF NOT EXISTS `votos_belleza` (
+      `id_voto` int(11) NOT NULL AUTO_INCREMENT,
+      `id_usuarios` int(11) NOT NULL,
+      `id_problemas` int(11) NOT NULL,
+      `fecha_voto` datetime DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (`id_voto`),
+      UNIQUE KEY `voto_unico_usuario_problema` (`id_usuarios`,`id_problemas`),
+      KEY `id_usuarios` (`id_usuarios`),
+      KEY `id_problemas` (`id_problemas`)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+");
+
 // --- Fetch all problems along with user's progress for the current category ---
 $sql_problems = "
     SELECT
@@ -110,6 +124,33 @@ if ($stmt_problems = $conn->prepare($sql_problems)) {
         $all_problems[] = $row;
     }
     $stmt_problems->close();
+} else {
+    // Fallback de seguridad si falla la consulta con votos_belleza
+    $sql_fallback = "
+        SELECT
+            p.id_problemas, p.fen, p.solucion, p.pgn, p.juega, p.id_categorias, p.dificultad, p.modo, p.desarrollo,
+            c.nombre_categoria, c.id_publicacion, pub.titulo AS nombre_publicacion, p.variante_nombre,
+            COALESCE(pu.resuelto_correctamente, 0) AS solved_by_user,
+            COALESCE(pu.intentos, 0) AS attempts_by_user,
+            0 AS total_votos_belleza,
+            0 AS user_voted_beauty
+        FROM problemas p
+        JOIN categorias c ON p.id_categorias = c.id_categorias
+        JOIN publicacion pub ON c.id_publicacion = pub.id_publicacion
+        LEFT JOIN progreso_usuarios pu ON p.id_problemas = pu.id_problemas AND pu.id_usuarios = ?
+        WHERE p.id_categorias = ?
+        GROUP BY p.id_problemas
+        ORDER BY p.orden ASC, FIELD(p.dificultad, 'Fácil', 'Intermedio', 'Difícil', 'Experto'), p.id_problemas ASC";
+
+    if ($stmt_fallback = $conn->prepare($sql_fallback)) {
+        $stmt_fallback->bind_param("ii", $id_usuario_actual, $current_category_id);
+        $stmt_fallback->execute();
+        $result_fallback = $stmt_fallback->get_result();
+        while ($row = $result_fallback->fetch_assoc()) {
+            $all_problems[] = $row;
+        }
+        $stmt_fallback->close();
+    }
 }
 
 // Determine if there are any study problems to adjust the layout
