@@ -252,14 +252,14 @@ $total_problems_in_current_category = count($all_problems);
                         <!-- Difficulty stars -->
                     </div>
                 </div>
-                <!-- BOTONES DE VOTACIÓN DE BELLEZA Y EXPORTACIÓN DE FICHA -->
+                <!-- BOTÓN DE VOTACIÓN DE BELLEZA Y CONTEO DE VOTOS -->
                 <div class="d-flex align-items-center justify-content-between pt-2 mt-2 border-top gap-2">
                     <button id="beautyVoteBtn" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1 fw-bold shadow-sm d-inline-flex align-items-center gap-1" title="Votar la belleza del ejercicio">
-                        <i id="beautyHeartIcon" class="far fa-heart"></i> <span id="beautyVoteText">¡Qué belleza!</span> (<span id="beautyVoteCount">0</span>)
+                        <i id="beautyHeartIcon" class="far fa-heart"></i> <span id="beautyVoteText">¡Qué belleza!</span>
                     </button>
-                    <a id="exportDiagramBtn" href="#" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1 fw-bold shadow-sm d-inline-flex align-items-center gap-1" title="Exportar ficha e imprimir diagrama">
-                        <i class="fas fa-file-export"></i> Exportar Ficha
-                    </a>
+                    <span id="beautyBadge" class="badge rounded-pill bg-light text-danger border border-danger-subtle px-3 py-2 fw-semibold d-inline-flex align-items-center gap-1" style="font-size: 0.85rem;">
+                        <i class="fas fa-heart text-danger"></i> <span id="beautyVoteCount">0</span> voto(s) de belleza
+                    </span>
                 </div>
             </div>
 
