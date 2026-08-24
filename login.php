@@ -83,7 +83,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <div class="login-wrapper">
     <div class="login-card">
         <div class="login-header">
-            <img src="img/logo_ct.svg" alt="Chess Trainer Logo" class="login-logo-img">
+            <div class="logo-wrapper-20 mb-2">
+                <img src="img/logo_ct.svg" alt="Chess Trainer Logo" class="login-logo-img">
+                <span class="badge-20 badge-20-lg">2.0</span>
+            </div>
             <h3 class="login-title">Inicia tu entrenamiento</h3>
             <p class="login-subtitle">Accede a tus ejercicios y mejora tu nivel de ajedrez</p>
         </div>

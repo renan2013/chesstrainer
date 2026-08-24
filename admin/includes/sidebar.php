@@ -1,8 +1,8 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="../index.php">
-            <img src="../img/logo_blanco.svg" alt="Chess Trainer Logo" width="80"  class="d-inline-block align-text-top">
-            
+        <a class="navbar-brand logo-wrapper-20" href="../index.php">
+            <img src="../img/logo_blanco.svg" alt="Chess Trainer Logo" width="80" class="d-inline-block align-text-top">
+            <span class="badge-20">2.0</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>

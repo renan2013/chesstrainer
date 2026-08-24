@@ -1,6 +1,9 @@
 <div class="lichess-menu">
     <div class="lichess-menu-left">
-        <a href="index.php"><img src="img/logo_ct.svg" width="90" alt="Logo Chess Trainer"></a>
+        <a href="index.php" class="logo-wrapper-20">
+            <img src="img/logo_ct.svg" width="90" alt="Logo Chess Trainer">
+            <span class="badge-20">2.0</span>
+        </a>
         <a href="secciones.php?id_publicacion=<?php echo $id_publicacion; ?>" class="btn btn-link"><i class="fas fa-arrow-left"></i></a>
     </div>
     <div class="lichess-menu-center">

@@ -1,7 +1,10 @@
     <br/><br/>
     <footer class="footer mt-auto py-2 bg-light">
         <div class="container text-center">
-             <img src="img/logo_ct.svg" alt="Chess Trainer Logo" style="width: 110px; height: auto;"><br/>
+            <div class="logo-wrapper-20 mb-1">
+                <img src="img/logo_ct.svg" alt="Chess Trainer Logo" style="width: 110px; height: auto;">
+                <span class="badge-20 badge-20-sm">2.0</span>
+            </div><br/>
             <span class="text-muted" style="font-size: 0.75rem;">developed by renangalvan.net - (+506) 87777849 - San José, Costa Rica. <?php echo date('Y'); ?></span>
         </div>
     </footer>
