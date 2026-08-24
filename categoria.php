@@ -165,32 +165,6 @@ $total_problems_in_current_category = count($all_problems);
 <?php include 'includes/lichess_menu.php'; ?>
 
 <div class="container-fluid lichess-container py-3">
-    <!-- TOP BAR CONTROL & ACTION BUTTONS -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
-        <div class="d-flex align-items-center mb-2 mb-md-0">
-            <a href="secciones.php?id_publicacion=<?php echo $id_publicacion; ?>" class="btn btn-outline-secondary btn-sm me-3">
-                <i class="fas fa-arrow-left me-1"></i> Volver
-            </a>
-            <div>
-                <h4 class="fw-bold mb-0 text-dark"><?php echo htmlspecialchars($category_name); ?></h4>
-                <span class="text-muted small">
-                    Ejercicio <span id="current-problem-number"><?php echo $current_problem_index + 1; ?></span> de <span id="total-problems"><?php echo $total_problems_in_current_category; ?></span>
-                </span>
-            </div>
-        </div>
-
-        <?php if ($is_admin): ?>
-        <div class="d-flex align-items-center gap-2">
-            <a href="descargar_clase.php?id_categoria=<?php echo $current_category_id; ?>" class="btn btn-sm btn-outline-success" target="_blank">
-                <i class="fas fa-file-pdf me-1"></i> PDF
-            </a>
-            <a href="editar_categoria.php?id_categoria=<?php echo $current_category_id; ?>" class="btn btn-sm btn-outline-secondary">
-                <i class="fas fa-edit me-1"></i> Editar Categoría
-            </a>
-        </div>
-        <?php endif; ?>
-    </div>
-
     <div id="result-message-container"></div>
 
     <!-- LICHESS 2-COLUMN GRID -->
