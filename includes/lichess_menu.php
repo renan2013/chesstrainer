@@ -25,9 +25,14 @@
             ?>
         </h4>
         <?php if (isset($total_problems_in_current_category)): ?>
-            <span class="text-muted small">
-                Ejercicio <span id="current-problem-number"><?php echo (isset($current_problem_index) ? $current_problem_index + 1 : 1); ?></span> de <span id="total-problems"><?php echo $total_problems_in_current_category; ?></span>
-            </span>
+            <div class="d-inline-flex align-items-center gap-2">
+                <span class="text-muted small">
+                    Ejercicio <span id="current-problem-number"><?php echo (isset($current_problem_index) ? $current_problem_index + 1 : 1); ?></span> de <span id="total-problems"><?php echo $total_problems_in_current_category; ?></span>
+                </span>
+                <button id="desktop-nav-next-btn" class="btn btn-sm btn-success fw-bold px-3 py-1 ms-2 shadow-sm" title="Siguiente Ejercicio">
+                    Siguiente <i class="fas fa-arrow-right ms-1"></i>
+                </button>
+            </div>
         <?php endif; ?>
     </div>
 
@@ -85,7 +90,7 @@
             <span id="mobile-turn-text">Juegan Blancas</span>
         </span>
         <!-- BOTÓN SIGUIENTE EJERCICIO EN MÓVIL (Al lado de Volver) -->
-        <button id="mobile-next-btn" class="btn btn-sm btn-success fw-bold d-inline-flex align-items-center gap-1 shadow-sm" style="display: none; font-size: 0.8rem;">
+        <button id="mobile-next-btn" class="btn btn-sm btn-success fw-bold d-inline-flex align-items-center gap-1 shadow-sm" style="font-size: 0.8rem;" title="Siguiente Ejercicio">
             Siguiente <i class="fas fa-arrow-right"></i>
         </button>
     </div>
