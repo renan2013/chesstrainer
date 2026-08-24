@@ -576,9 +576,6 @@ $total_problems_in_current_category = count($all_problems);
         }
 
 
-        var wrapperWidth = $('#board-wrapper').parent().width();
-        $('#board-wrapper').width(wrapperWidth);
-
         // Usar setTimeout para asegurar que el DOM está estable antes de dibujar el tablero
         setTimeout(function() {
             var isBlackTurn = (game.turn() === 'b' || currentProblem.juega.toLowerCase() === 'negras');

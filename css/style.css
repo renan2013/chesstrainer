@@ -996,6 +996,18 @@ body.login-page::before {
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
+#board-wrapper {
+    width: 100% !important;
+    max-width: 560px !important;
+    margin: 0 auto !important;
+}
+
+#board {
+    width: 100% !important;
+    max-width: 560px !important;
+    margin: 0 auto !important;
+}
+
 .lichess-board-controls {
     display: flex;
     justify-content: center;
