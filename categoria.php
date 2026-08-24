@@ -651,7 +651,8 @@ $total_problems_in_current_category = count($all_problems);
 
         // Usar setTimeout para asegurar que el DOM está estable antes de dibujar el tablero
         setTimeout(function() {
-            var isBlackTurn = (game.turn() === 'b' || currentProblem.juega.toLowerCase() === 'negras');
+            var problemJuega = (currentProblem.juega && currentProblem.juega.trim() !== '') ? currentProblem.juega.toLowerCase() : '';
+            var isBlackTurn = (problemJuega === 'negras' || (problemJuega === '' && initialTurn === 'b'));
             var config = {
                 draggable: (currentProblem.modo === 'problema'),
                 position: game.fen(),
@@ -1105,7 +1106,8 @@ $total_problems_in_current_category = count($all_problems);
             $('#current-diagram-id').text(currentProblem.id_problemas);
             $('#attempts-display').text(currentProblem.attempts_by_user);
 
-            var isWhite = (currentProblem.juega.toLowerCase() === 'blancas' || game.turn() === 'w');
+            var problemJuega = (currentProblem.juega && currentProblem.juega.trim() !== '') ? currentProblem.juega.toLowerCase() : '';
+            var isWhite = (problemJuega === 'blancas' || (problemJuega === '' && initialTurn === 'w'));
             var $turnCard = $('#turn-card-wrapper');
             var $turnDot = $('#turn-dot');
             var $turnTitle = $('#turn-title');
