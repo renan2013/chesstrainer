@@ -396,32 +396,8 @@ $total_problems_in_current_category = count($all_problems);
         try {
             var sound = new Audio('mp3/movimiento.mp3');
             sound.volume = 1.0;
+            sound.currentTime = 0;
             sound.play().catch(function(e) {});
-            playWebAudioMovePunch();
-        } catch(e) {}
-    }
-
-    function playWebAudioMovePunch() {
-        try {
-            var AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx) return;
-            if (!window.chessAudioCtx) window.chessAudioCtx = new AudioCtx();
-            var ctx = window.chessAudioCtx;
-            if (ctx.state === 'suspended') ctx.resume();
-
-            var osc = ctx.createOscillator();
-            var gain = ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(160, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.09);
-
-            gain.gain.setValueAtTime(0.85, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.09);
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start();
-            osc.stop(ctx.currentTime + 0.09);
         } catch(e) {}
     }
 
@@ -856,27 +832,33 @@ $total_problems_in_current_category = count($all_problems);
             playMoveSound();
             currentMoveIndex++;
             if (currentMoveIndex === currentSolutionMoves.length) {
-                handleProblemSolved(allProblems[currentProblemIndex]);
-            } else {
                 setTimeout(function() {
-                var engineMoveString = currentSolutionMoves[currentMoveIndex];
-                var move_to_play = engineMoveString;
-
-                if (engineMoveString.includes('|')) {
-                    move_to_play = engineMoveString.replace(/[()]/g, '').split('|')[0];
-                }
-
-                game.move(move_to_play);
-                board.position(game.fen());
-                playMoveSound();
-                currentMoveIndex++;
-                highlightKingInCheck();
-                if (currentMoveIndex === currentSolutionMoves.length) {
                     handleProblemSolved(allProblems[currentProblemIndex]);
-                } else {
-                    setFeedbackStatus('success', '<i class="fas fa-check-circle me-2"></i>¡Correcto! Tu turno de nuevo.');
-                }
-            }, 300);
+                }, 350);
+            } else {
+                // Opponent counter-move delay (650ms for realistic, perfectly synchronized rhythm)
+                setTimeout(function() {
+                    var engineMoveString = currentSolutionMoves[currentMoveIndex];
+                    var move_to_play = engineMoveString;
+
+                    if (engineMoveString.includes('|')) {
+                        move_to_play = engineMoveString.replace(/[()]/g, '').split('|')[0];
+                    }
+
+                    game.move(move_to_play);
+                    board.position(game.fen());
+                    playMoveSound();
+                    currentMoveIndex++;
+                    highlightKingInCheck();
+
+                    if (currentMoveIndex === currentSolutionMoves.length) {
+                        setTimeout(function() {
+                            handleProblemSolved(allProblems[currentProblemIndex]);
+                        }, 400);
+                    } else {
+                        setFeedbackStatus('success', '<i class="fas fa-check-circle me-2"></i>¡Correcto! Tu turno de nuevo.');
+                    }
+                }, 650);
             }
         } else {
             game.undo(); 
