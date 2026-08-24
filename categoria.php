@@ -185,7 +185,8 @@ $total_problems_in_current_category = count($all_problems);
                         <button id="nextMoveBtn" class="btn lichess-btn-ctrl" title="Siguiente"><i class="fas fa-step-forward"></i></button>
                         <button id="lastMoveBtn" class="btn lichess-btn-ctrl" title="Último movimiento"><i class="fas fa-fast-forward"></i></button>
                     </div>
-                    <button id="flipBoardBtn" class="btn lichess-btn-ctrl me-auto" title="Rotar tablero"><i class="fas fa-retweet"></i> Rotar</button>
+                    <button id="flipBoardBtn" class="btn lichess-btn-ctrl me-1" title="Rotar tablero"><i class="fas fa-retweet"></i> Rotar</button>
+                    <button id="repeatBoardBtn" class="btn lichess-btn-ctrl me-auto" title="Repetir ejercicio"><i class="fas fa-redo-alt me-1"></i> Repetir</button>
                     <span id="stopwatch" class="badge bg-dark text-white p-2 fs-6"><i class="far fa-clock me-1"></i> 00:00</span>
                 </div>
             </div>
@@ -218,11 +219,16 @@ $total_problems_in_current_category = count($all_problems);
                 </div>
             </div>
 
-            <!-- 3. ACTION BUTTON (SIGUIENTE EJERCICIO) -->
+            <!-- 3. ACTION BUTTON (REPETIR & SIGUIENTE EJERCICIO) -->
             <div id="action-button-container" class="mb-3" style="display: none;">
-                <button id="nextItemBtn" class="btn lichess-next-btn">
-                    Siguiente Ejercicio <i class="fas fa-arrow-right ms-2"></i>
-                </button>
+                <div class="d-flex gap-2">
+                    <button id="repeatProblemBtn" class="btn btn-outline-primary fw-bold py-2 px-3 flex-grow-1" style="border-radius: 10px;">
+                        <i class="fas fa-redo-alt me-1"></i> Repetir
+                    </button>
+                    <button id="nextItemBtn" class="btn lichess-next-btn flex-grow-1">
+                        Siguiente Ejercicio <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- 4. MOVES NOTATION LIST & EXPLANATION -->
@@ -435,6 +441,7 @@ $total_problems_in_current_category = count($all_problems);
         initBoard();
         
         $('#nextItemBtn, #mobile-next-btn, #desktop-nav-next-btn').on('click', loadNextProblem);
+        $('#repeatBoardBtn, #repeatProblemBtn').on('click', retryCurrentProblem);
 
         $('#flipBoardBtn').on('click', function() {
             if (board) {
@@ -684,6 +691,15 @@ $total_problems_in_current_category = count($all_problems);
                 activeItem.classList.add('active');
             }
         }
+    }
+
+    function retryCurrentProblem() {
+        if (allProblems.length === 0) return;
+        if (lastKingSquare) {
+            $('#board [data-square=' + lastKingSquare + ']').removeClass('in-check-glow');
+            lastKingSquare = null;
+        }
+        loadProblemByIndex(currentProblemIndex);
     }
 
     function loadNextProblem() {
