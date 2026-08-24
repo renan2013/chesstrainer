@@ -714,7 +714,42 @@ $total_problems_in_current_category = count($all_problems);
             $('#board [data-square=' + lastKingSquare + ']').removeClass('in-check-glow');
             lastKingSquare = null;
         }
-        loadProblemByIndex(currentProblemIndex);
+
+        var currentProblem = allProblems[currentProblemIndex];
+
+        if (currentProblem.modo === 'estudio' && currentProblem.pgn && currentProblem.pgn.trim() !== '') {
+            game = new Chess();
+            game.load_pgn(currentProblem.pgn);
+            currentSolutionMoves = game.history();
+            const headers = game.header();
+            const startFen = headers['FEN'] || 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+            game.load(startFen);
+        } else {
+            game = new Chess(currentProblem.fen);
+            currentSolutionMoves = currentProblem.solucion.split(' ').filter(move => move.length > 0);
+        }
+
+        currentMoveIndex = 0;
+        puzzleFinished = false; // Desbloquear tablero para repetir jugadas
+
+        $('#action-button-container').hide();
+        setFeedbackStatus('neutral', '<i class="fas fa-redo me-2"></i>Modo Repetición: Tu turno. Realiza la jugada.');
+
+        var isBlackTurn = (game.turn() === 'b' || currentProblem.juega.toLowerCase() === 'negras');
+        var config = {
+            draggable: (currentProblem.modo === 'problema'),
+            position: game.fen(),
+            orientation: isBlackTurn ? 'black' : 'white',
+            onDrop: onDrop
+        };
+        board = Chessboard('board', config);
+
+        if (currentProblem.modo === 'problema') {
+            startStopwatch();
+        }
+
+        updateProblemDisplay();
+        updateMoveSequenceDisplay();
     }
 
     function loadNextProblem() {
