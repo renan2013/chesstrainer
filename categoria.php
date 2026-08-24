@@ -594,7 +594,22 @@ $total_problems_in_current_category = count($all_problems);
                 $('#stopwatch').show();
                 $('#turn-card-wrapper').show();
                 $('#attempts-line').show();
-                startStopwatch();
+
+                if (currentProblem.solved_by_user == 1) {
+                    setFeedbackStatus('success', '<i class="fas fa-trophy me-2"></i>Ejercicio ya resuelto previamente.');
+                    puzzleFinished = true;
+                    $('#action-button-container, #mobile-next-btn').show();
+                } else if (currentProblem.solved_by_user == 2 || currentProblemAttempts >= MAX_ATTEMPTS) {
+                    setFeedbackStatus('error', '<i class="fas fa-times-circle me-2"></i>Has agotado tus intentos para este ejercicio.');
+                    puzzleFinished = true;
+                    $('#action-button-container, #mobile-next-btn').show();
+                } else if (currentProblemAttempts > 0) {
+                    var attemptsLeft = MAX_ATTEMPTS - currentProblemAttempts;
+                    setFeedbackStatus('warning', '<i class="fas fa-exclamation-triangle me-2"></i>Ya realizaste 1 intento fallido. Te queda ' + attemptsLeft + ' intento.');
+                    startStopwatch();
+                } else {
+                    startStopwatch();
+                }
             } else { // modo === 'estudio'
                 if (hasNextStudyProblem()) {
                     $('#nextItemBtn').removeClass('btn-primary').addClass('btn-light').html('Siguiente Estudio <i class="fas fa-arrow-right ms-2"></i>');
@@ -921,6 +936,20 @@ $total_problems_in_current_category = count($all_problems);
         allProblems[currentProblemIndex].attempts_by_user++;
         var attemptsLeft = MAX_ATTEMPTS - currentProblemAttempts;
         var currentProblem = allProblems[currentProblemIndex];
+
+        var solvedStatus = (attemptsLeft <= 0) ? 2 : 0;
+
+        // Persistir intento de inmediato en BD para evitar reseteo al refrescar pantalla (F5)
+        $.ajax({
+            url: 'record_attempt.php',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                problem_id: currentProblem.id_problemas,
+                attempts: allProblems[currentProblemIndex].attempts_by_user,
+                solved_status: solvedStatus
+            }
+        });
 
         if (attemptsLeft > 0) {
             setFeedbackStatus('warning', '<i class="fas fa-exclamation-triangle me-2"></i>Jugada incorrecta. Te quedan ' + attemptsLeft + ' intento(s).');
