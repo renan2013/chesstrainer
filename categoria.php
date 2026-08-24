@@ -1195,6 +1195,7 @@ $total_problems_in_current_category = count($all_problems);
 
             setTimeout(function() {
                 var boardConfig = {
+                    showNotation: false,
                     position: problem.fen,
                     pieceTheme: 'img/chesspieces/wikipedia/{piece}.png'
                 };

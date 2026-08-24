@@ -1211,5 +1211,11 @@ body.login-page::before {
     }
 }
 
+/* Ocultar notación de filas y columnas en miniaturas del administrador */
+.diagram-card .notation-322f9,
+#diagram-navigator .notation-322f9 {
+    display: none !important;
+}
+
 
 ""
