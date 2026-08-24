@@ -73,11 +73,18 @@
 
 <!-- SECOND LINE FOR MOBILE DEVICES (< 768px) -->
 <div class="lichess-menu-mobile-subbar d-flex d-md-none justify-content-between align-items-center px-3 py-2 border-bottom bg-white">
-    <?php if (isset($id_publicacion) && !empty($id_publicacion)): ?>
-        <a href="secciones.php?id_publicacion=<?php echo $id_publicacion; ?>" class="btn btn-sm btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Volver
-        </a>
-    <?php endif; ?>
+    <div class="d-flex align-items-center gap-2">
+        <?php if (isset($id_publicacion) && !empty($id_publicacion)): ?>
+            <a href="secciones.php?id_publicacion=<?php echo $id_publicacion; ?>" class="btn btn-sm btn-outline-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Volver
+            </a>
+        <?php endif; ?>
+        <!-- BADGE DEL TURNO DEL JUGADOR AL LADO DEL BOTÓN VOLVER -->
+        <span id="mobile-turn-badge" class="badge rounded-pill bg-light text-dark border px-2 py-1 align-items-center gap-1 d-inline-flex" style="font-size: 0.8rem; font-weight: 600;">
+            <span id="mobile-turn-dot" class="turn-icon-dot white-dot me-1" style="width: 10px; height: 10px; margin-right: 4px;"></span>
+            <span id="mobile-turn-text">Juegan Blancas</span>
+        </span>
+    </div>
     <div class="text-end">
         <span class="fw-bold text-dark d-block small">
             <?php echo isset($category_name) ? htmlspecialchars($category_name) : ''; ?>

@@ -937,11 +937,19 @@ $total_problems_in_current_category = count($all_problems);
                 $turnDot.removeClass('black-dot').addClass('white-dot');
                 $turnTitle.text('Juegan Blancas');
                 $turnSubtitle.text('Encuentra la mejor jugada para las blancas.');
+
+                $('#mobile-turn-badge').removeClass('bg-dark text-white').addClass('bg-light text-dark border');
+                $('#mobile-turn-dot').removeClass('black-dot').addClass('white-dot');
+                $('#mobile-turn-text').text('Juegan Blancas');
             } else {
                 $turnCard.removeClass('turn-white').addClass('turn-black');
                 $turnDot.removeClass('white-dot').addClass('black-dot');
                 $turnTitle.text('Juegan Negras');
                 $turnSubtitle.text('Encuentra la mejor jugada para las negras.');
+
+                $('#mobile-turn-badge').removeClass('bg-light text-dark border').addClass('bg-dark text-white');
+                $('#mobile-turn-dot').removeClass('white-dot').addClass('black-dot');
+                $('#mobile-turn-text').text('Juegan Negras');
             }
 
             updateDifficultyStars(currentProblem.dificultad);
