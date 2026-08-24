@@ -618,42 +618,55 @@ $total_problems_in_current_category = count($all_problems);
         $moveSequenceDisplay.empty();
 
         var currentProblem = allProblems[currentProblemIndex];
+        var movesToDisplay = [];
 
-        if (currentProblem.modo === 'estudio' && currentSolutionMoves.length > 0) {
+        if (currentProblem.modo === 'estudio') {
+            movesToDisplay = currentSolutionMoves;
+        } else {
+            // En modo problema, obtenemos la lista de jugadas realizadas hasta el momento
+            movesToDisplay = (typeof game !== 'undefined') ? game.history() : [];
+        }
+
+        if (movesToDisplay.length > 0) {
             var movesHtml = '<table class="table table-sm table-borderless lichess-moves-table"><thead><tr><th>#</th><th>Blancas</th><th>Negras</th></tr></thead><tbody>';
             
             var moveOffset = (initialTurn === 'b') ? 1 : 0;
 
-            for (var i = 0; i < currentSolutionMoves.length; i++) {
-                var move = currentSolutionMoves[i];
+            for (var i = 0; i < movesToDisplay.length; i++) {
+                var move = movesToDisplay[i];
                 var moveNumber = Math.floor((i + moveOffset) / 2) + 1;
                 var isWhiteMove = ((i + moveOffset) % 2 === 0);
-                var isActive = (i === currentMoveIndex - 1) ? 'active-move' : '';
+                var isActive = (i === movesToDisplay.length - 1) ? 'active-move' : '';
 
                 if (isWhiteMove) {
-                    movesHtml += `<tr><td>${moveNumber}.</td><td class="${isActive}">${move}</td>`;
-                    if (i + 1 >= currentSolutionMoves.length) {
+                    movesHtml += `<tr><td>${moveNumber}.</td><td class="${isActive}">${escapeHtml(move)}</td>`;
+                    if (i + 1 >= movesToDisplay.length) {
                         movesHtml += `<td></td></tr>`;
                     }
                 } else {
                     if (i === 0 && initialTurn === 'b') {
                         movesHtml += `<tr><td>${moveNumber}.</td><td>...</td>`;
                     }
-                    movesHtml += `<td class="${isActive}">${move}</td></tr>`;
+                    movesHtml += `<td class="${isActive}">${escapeHtml(move)}</td></tr>`;
                 }
             }
             movesHtml += '</tbody></table>';
             $moveSequenceDisplay.html(movesHtml);
+
+            // Auto-scroll para mantener la última jugada visible
+            var panel = document.querySelector('.lichess-moves-panel');
+            if (panel) {
+                panel.scrollTop = panel.scrollHeight;
+            }
         } else {
-            $moveSequenceDisplay.empty();
+            $moveSequenceDisplay.html('<div class="text-muted text-center small py-2"><em>Las jugadas aparecerán aquí a medida que las realices...</em></div>');
         }
 
         var $desarrolloContent = $('#desarrollo-content');
         if ($desarrolloContent.length) {
             if (currentProblem.modo === 'estudio' && currentProblem.desarrollo) {
                 $desarrolloContent.html(currentProblem.desarrollo).show();
-            }
-            else {
+            } else {
                 $desarrolloContent.hide();
             }
         }
@@ -788,6 +801,7 @@ $total_problems_in_current_category = count($all_problems);
         if (isCorrect) {
             playMoveSound();
             currentMoveIndex++;
+            updateMoveSequenceDisplay();
             if (currentMoveIndex === currentSolutionMoves.length) {
                 setTimeout(function() {
                     handleProblemSolved(allProblems[currentProblemIndex]);
@@ -806,6 +820,7 @@ $total_problems_in_current_category = count($all_problems);
                     board.position(game.fen());
                     playMoveSound();
                     currentMoveIndex++;
+                    updateMoveSequenceDisplay();
                     highlightKingInCheck();
 
                     if (currentMoveIndex === currentSolutionMoves.length) {
