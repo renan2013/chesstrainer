@@ -1083,18 +1083,23 @@ body.login-page::before {
     border-radius: 14px;
     padding: 16px;
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    max-width: calc(var(--board-max-width, 560px) + 36px) !important;
+    margin: 0 auto;
+    transition: max-width 0.2s ease;
 }
 
 #board-wrapper {
     width: 100% !important;
-    max-width: 560px !important;
+    max-width: var(--board-max-width, 560px) !important;
     margin: 0 auto !important;
+    transition: max-width 0.2s ease;
 }
 
 #board {
     width: 100% !important;
-    max-width: 560px !important;
+    max-width: var(--board-max-width, 560px) !important;
     margin: 0 auto !important;
+    transition: max-width 0.2s ease;
 }
 
 .lichess-board-controls {

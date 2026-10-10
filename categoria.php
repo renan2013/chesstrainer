@@ -215,7 +215,7 @@ $total_problems_in_current_category = count($all_problems);
         
         <!-- LEFT COLUMN: CHESSBOARD -->
         <div class="col-lg-7 col-xl-7 d-flex flex-column align-items-center">
-            <div class="lichess-board-card w-100" style="max-width: 620px;">
+            <div class="lichess-board-card w-100">
                 <div id="board-wrapper" style="width: 100%;">
                     <div id="board" style="width: 100%; margin: 0 auto;"></div>
                 </div>
@@ -229,7 +229,21 @@ $total_problems_in_current_category = count($all_problems);
                         <button id="lastMoveBtn" class="btn lichess-btn-ctrl" title="Último movimiento"><i class="fas fa-fast-forward"></i></button>
                     </div>
                     <button id="flipBoardBtn" class="btn lichess-btn-ctrl me-1" title="Rotar tablero"><i class="fas fa-retweet"></i> Rotar</button>
-                    <button id="repeatBoardBtn" class="btn lichess-btn-ctrl me-auto" title="Repetir ejercicio"><i class="fas fa-redo-alt me-1"></i> Repetir</button>
+                    <button id="repeatBoardBtn" class="btn lichess-btn-ctrl me-1" title="Repetir ejercicio"><i class="fas fa-redo-alt me-1"></i> Repetir</button>
+                    
+                    <!-- AJUSTE DE TAMAÑO DEL TABLERO (+ / -) -->
+                    <div class="btn-group btn-group-sm me-auto" role="group" aria-label="Ajustar tamaño del tablero">
+                        <button id="zoomOutBoardBtn" class="btn lichess-btn-ctrl" type="button" title="Reducir tablero (-)">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button id="zoomResetBoardBtn" class="btn lichess-btn-ctrl" type="button" title="Tamaño original">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                        </button>
+                        <button id="zoomInBoardBtn" class="btn lichess-btn-ctrl" type="button" title="Ampliar tablero (+)">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+
                     <span id="stopwatch" class="badge bg-dark text-white p-2 fs-6"><i class="far fa-clock me-1"></i> 00:00</span>
                 </div>
             </div>
@@ -514,6 +528,53 @@ $total_problems_in_current_category = count($all_problems);
                     }
                 }
             });
+        });
+
+        // --- Control de Zoom del Tablero (+ / -) ---
+        const DEFAULT_BOARD_SIZE = 540;
+        const MIN_BOARD_SIZE = 340;
+        const MAX_BOARD_SIZE = 740;
+        const STEP_BOARD_SIZE = 40;
+
+        function applyBoardSize(size) {
+            size = Math.max(MIN_BOARD_SIZE, Math.min(MAX_BOARD_SIZE, size));
+            localStorage.setItem('chess_trainer_board_size', size);
+            document.documentElement.style.setProperty('--board-max-width', size + 'px');
+            
+            var boardCard = document.querySelector('.lichess-board-card');
+            if (boardCard) {
+                boardCard.style.setProperty('max-width', (size + 36) + 'px', 'important');
+            }
+            var boardWrapper = document.getElementById('board-wrapper');
+            if (boardWrapper) {
+                boardWrapper.style.setProperty('max-width', size + 'px', 'important');
+            }
+            var boardEl = document.getElementById('board');
+            if (boardEl) {
+                boardEl.style.setProperty('max-width', size + 'px', 'important');
+            }
+
+            if (typeof board !== 'undefined' && board && typeof board.resize === 'function') {
+                setTimeout(function() {
+                    board.resize();
+                }, 50);
+            }
+            return size;
+        }
+
+        var currentBoardSize = parseInt(localStorage.getItem('chess_trainer_board_size')) || DEFAULT_BOARD_SIZE;
+        applyBoardSize(currentBoardSize);
+
+        $('#zoomInBoardBtn').on('click', function() {
+            currentBoardSize = applyBoardSize(currentBoardSize + STEP_BOARD_SIZE);
+        });
+
+        $('#zoomOutBoardBtn').on('click', function() {
+            currentBoardSize = applyBoardSize(currentBoardSize - STEP_BOARD_SIZE);
+        });
+
+        $('#zoomResetBoardBtn').on('click', function() {
+            currentBoardSize = applyBoardSize(DEFAULT_BOARD_SIZE);
         });
 
         $('#flipBoardBtn').on('click', function() {
