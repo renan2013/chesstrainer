@@ -108,7 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 
-    <main class="main-content" style="background-color: #f0f0f0;">
+    <main class="main-content">
 
         <h3>Añadir Nuevo Diagrama</h3>
         <link rel="stylesheet" href="../css/chessboard-1.0.0.min.css">
