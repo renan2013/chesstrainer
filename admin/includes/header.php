@@ -24,8 +24,22 @@ try {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../css/style.css">
-    
+    <link rel="stylesheet" href="../css/style.css?v=<?php echo time(); ?>">
+    <style>
+        html {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow-x: hidden !important;
+        }
+        body {
+            width: 100% !important;
+            max-width: 100% !important;
+            overflow-x: hidden !important;
+            align-items: stretch !important;
+            justify-content: flex-start !important;
+        }
+    </style>
 </head>
 <body style="background-color: #f8f8f8;">
         <?php require_once 'includes/sidebar.php'; ?>
