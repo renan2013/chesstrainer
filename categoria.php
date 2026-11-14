@@ -372,7 +372,7 @@ $total_problems_in_current_category = count($all_problems);
 <?php endif; ?>
 
 <?php if ($is_admin): ?>
-<div class="container mt-5">
+<div class="container-fluid mt-5">
     <hr>
     <h4 class="mb-3 text-center">Navegador de Diagramas (Admin)</h4>
     <div id="diagram-navigator" class="row justify-content-center"></div>

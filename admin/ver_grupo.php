@@ -146,7 +146,7 @@ $conn->close();
 
 <?php include 'includes/header.php'; ?>
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <a href="grupos.php" class="btn btn-secondary mb-3">&#8592; Volver a la lista de Grupos</a>
 
     <?php if (!empty($mensaje)) echo $mensaje; ?>

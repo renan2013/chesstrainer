@@ -39,7 +39,7 @@ if ($result = $conn->query($sql)) {
     <?php require_once 'includes/sidebar.php'; // Incluimos el menú lateral ?>
 
     <main class="main-content">
-        <div class="container mt-5">
+        <div class="container-fluid mt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3>Totales de Problemas Resueltos por Usuario</h3>
                 <a href="ver_resultados.php" class="btn btn-secondary">&larr; Volver a Resultados por Categoría</a>

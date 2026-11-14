@@ -44,7 +44,7 @@ $conn->close();
 
 <?php include 'includes/header.php'; ?>
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <h2>Crear Nuevo Grupo</h2>
     <p>Aquí puedes crear un nuevo grupo o curso y asignarle un instructor.</p>
 

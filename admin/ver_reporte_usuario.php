@@ -73,7 +73,7 @@ $porcentaje_global = ($total_problemas_global > 0) ? ($total_resueltos_global / 
     <?php require_once 'includes/sidebar.php'; // Incluimos el menú lateral ?>
 
     <main class="main-content">
-        <div class="container mt-5">
+        <div class="container-fluid mt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3>Reporte de Resultados para: <?php echo htmlspecialchars($nombre_usuario_reporte); ?></h3>
                 <div>

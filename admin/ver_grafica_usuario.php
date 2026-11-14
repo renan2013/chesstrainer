@@ -63,7 +63,7 @@ if ($stmt_grafica = $conn->prepare($sql_grafica)) {
     <?php require_once 'includes/sidebar.php'; // Incluimos el menú lateral ?>
 
     <main class="main-content">
-        <div class="container mt-5">
+        <div class="container-fluid mt-5">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3>Gráfica de Rendimiento para: <?php echo htmlspecialchars($nombre_usuario_reporte); ?></h3>
                 <a href="ver_reporte_usuario.php?id=<?php echo urlencode($id_usuario_reporte); ?>" class="btn btn-secondary">&larr; Volver al Reporte</a>

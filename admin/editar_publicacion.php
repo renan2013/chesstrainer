@@ -80,7 +80,7 @@ $page_title = "Editar Publicación";
 require_once 'includes/header.php';
 ?>
 
-<div class="container mt-4">
+<div class="container-fluid mt-4">
     <h1 class="mb-4">Editar Publicación</h1>
 
     <?php if(!empty($error)): ?>

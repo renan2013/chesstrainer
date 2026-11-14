@@ -163,7 +163,7 @@ $solucion = $problem['solucion'];
 <body>
 
     <!-- BOTONES DE ACCIÓN (NO IMPRIMIBLES) -->
-    <div class="container text-center mt-4 no-print">
+    <div class="container-fluid text-center mt-4 no-print">
         <button onclick="window.print()" class="btn btn-success btn-lg fw-bold px-4 me-2 shadow-sm">
             <i class="fas fa-print me-2"></i> Imprimir Diagrama / Guardar PDF
         </button>

@@ -89,7 +89,7 @@ $conn->close();
 ?>
 
 <?php include 'includes/lichess_menu.php'; ?>
-<div class="container dashboard-container">
+<div class="container-fluid dashboard-container">
 
     <!-- HERO BANNER -->
     <div class="index-hero d-flex align-items-center justify-content-between">
