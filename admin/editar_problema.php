@@ -142,7 +142,7 @@ if ($result_publicaciones->num_rows > 0) {
 
 
 
-    <main class="main-content">
+    <main class="container-fluid py-4 px-4">
 
         <h3>Editar Problema #<?php echo htmlspecialchars($id_problema); ?></h3>
         <link rel="stylesheet" href="../css/chessboard-1.0.0.min.css">
