@@ -99,7 +99,7 @@ $progreso_general = ($total_capitulos > 0) ? round($suma_porcentajes / $total_ca
 
 <?php include 'includes/lichess_menu.php'; ?>
 
-<div class="secciones-page container-fluid px-3 px-sm-4 px-xl-5 py-4" style="max-width: 1700px; min-height: calc(100vh - 240px);">
+<div class="secciones-page container-fluid px-3 px-sm-4 px-xl-5 py-4" style="max-width: 100%; min-height: calc(100vh - 240px);">
 
     <!-- HERO BANNER DEL CURSO -->
     <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #334155 100%); color: #ffffff; border-radius: 20px; overflow: hidden;">

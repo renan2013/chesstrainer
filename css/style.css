@@ -1,10 +1,19 @@
 /* General Body Styles */
+html {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 body {
     font-family: 'Arial', sans-serif;
     background-color: #fff; /* Revert to white */
     color: #333;
     margin: 0;
     padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -187,7 +196,7 @@ footer {
 
 .admin-container {
     width: 100% !important;
-    max-width: 1750px !important;
+    max-width: 100% !important;
     margin: 0 auto !important;
     display: block !important;
     background-color: transparent !important;
@@ -342,7 +351,7 @@ footer {
 /* Contenedores con ancho extendido */
 .container,
 .dashboard-container {
-    max-width: 1700px !important;
+    max-width: 100% !important;
     width: 100% !important;
 }
 
@@ -527,8 +536,8 @@ footer {
 
 @media (min-width: 992px) {
     .container-fluid {
-        padding-left: 8rem;
-        padding-right: 8rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
     }
 }
 
@@ -586,7 +595,7 @@ footer {
    ESTILOS PARA LA PÁGINA DE LOGIN (MODERN CHESS TRAINER THEME - MODO CLARO)
    ========================================================================== */
 
-html, body.login-page {
+body.login-page {
     background: #f8fafc !important;
     background-color: #f8fafc !important;
     min-height: 100vh;
@@ -1310,6 +1319,3 @@ body.login-page::before {
 #diagram-navigator .notation-322f9 {
     display: none !important;
 }
-
-
-""

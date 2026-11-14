@@ -39,7 +39,7 @@ $conn->close();
 /* Estilos modernos para el Dashboard de Administración */
 .dashboard-wrapper {
     width: 100%;
-    max-width: 1700px;
+    max-width: 100%;
     margin: 0 auto;
 }
 
